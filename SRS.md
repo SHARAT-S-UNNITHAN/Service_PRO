@@ -588,7 +588,7 @@ Frontend Routing (client/src/App.js):
 
 ## 11. REFERENCE
 
-- React Documentation: https://react.dev
+- React Documentation: https://react.dev 
 - Express.js: https://expressjs.com
 - SQLite3: https://www.sqlite.org
 - JWT: https://jwt.io
