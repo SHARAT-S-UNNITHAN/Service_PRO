@@ -1,4 +1,4 @@
-// src/pages/UserDashboard.jsx
+﻿// src/pages/UserDashboard.jsx
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import UserSidebar   from "../components/user/UserSidebar";
@@ -13,17 +13,13 @@ export default function UserDashboard() {
 
   const [activeSection, setActiveSection] = useState("profile");
   const [otpBadgeCount, setOtpBadgeCount] = useState(0);
-
-  // ── Profile state ──
-  const [profile,     setProfile]     = useState(null);
+  const [profile, setProfile] = useState(null);
   const [profileLoad, setProfileLoad] = useState(true);
-  const [editMode,    setEditMode]    = useState(false);
-  const [formData,    setFormData]    = useState({});
+  const [editMode, setEditMode] = useState(false);
+  const [formData, setFormData] = useState({});
   const [saveLoading, setSaveLoading] = useState(false);
-  const [saveError,   setSaveError]   = useState("");
-
-  // ── Bookings state ──
-  const [bookings,     setBookings]     = useState([]);
+  const [saveError, setSaveError] = useState("");
+  const [bookings, setBookings] = useState([]);
   const [bookingsLoad, setBookingsLoad] = useState(true);
 
   const handleLogout = () => {
@@ -31,7 +27,6 @@ export default function UserDashboard() {
     window.location.href = "/login";
   };
 
-  // ── Fetch profile ──
   const fetchProfile = useCallback(async () => {
     try {
       setProfileLoad(true);
@@ -47,7 +42,6 @@ export default function UserDashboard() {
     }
   }, [token]);
 
-  // ── Fetch bookings ──
   const fetchBookings = useCallback(async () => {
     try {
       setBookingsLoad(true);
@@ -67,7 +61,6 @@ export default function UserDashboard() {
     fetchBookings();
   }, [fetchProfile, fetchBookings]);
 
-  // ── Profile save ──
   const handleSave = async () => {
     setSaveLoading(true);
     setSaveError("");
@@ -88,7 +81,6 @@ export default function UserDashboard() {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // ── Mobile bottom nav ──
   const MobileNav = () => (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 flex">
       {[
@@ -117,8 +109,6 @@ export default function UserDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
-
-      {/* Sidebar */}
       <UserSidebar
         activeSection={activeSection}
         setActiveSection={setActiveSection}
@@ -126,11 +116,8 @@ export default function UserDashboard() {
         otpCount={otpBadgeCount}
       />
 
-      {/* Main content */}
       <div className="flex-1 overflow-auto pb-20 md:pb-0">
         <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8">
-
-          {/* ── Profile ── */}
           {activeSection === "profile" && (
             profileLoad ? (
               <div className="flex items-center justify-center py-24">
@@ -151,29 +138,25 @@ export default function UserDashboard() {
             )
           )}
 
-          {/* ── Bookings ── */}
           {activeSection === "bookings" && (
             bookingsLoad ? (
               <div className="flex items-center justify-center py-24">
                 <div className="w-8 h-8 border-2 border-gray-200 border-t-indigo-600 rounded-full animate-spin" />
               </div>
             ) : (
-              <MyBookings bookings={bookings} token={token} />
+              <MyBookings bookings={bookings} token={token} onRefresh={fetchBookings} />
             )
           )}
 
-          {/* ── OTP Notifications ── */}
           {activeSection === "otp" && (
             <OtpNotifications
               token={token}
               onActiveCountChange={setOtpBadgeCount}
             />
           )}
-
         </div>
       </div>
 
-      {/* Mobile bottom nav */}
       <MobileNav />
     </div>
   );

@@ -4,12 +4,13 @@ import axios from "axios";
 import {
   Users, Clock, ShieldCheck, UserX,
   RefreshCw, BookOpen, IndianRupee, AlertTriangle, BarChart2,
+  UserCheck,
 } from "lucide-react";
 
 const API = "http://localhost:4000";
 
 export default function DashboardSection({ onSectionChange }) {
-  const [stats,         setStats]         = useState({ totalProviders:0, pendingVerification:0, approved:0, rejected:0 });
+  const [providerStats, setProviderStats] = useState({ total:0, pending:0, approved:0, rejected:0 });
   const [extraStats,    setExtraStats]    = useState(null);
   const [recentPending, setRecentPending] = useState([]);
   const [loading,       setLoading]       = useState(true);
@@ -25,18 +26,19 @@ export default function DashboardSection({ onSectionChange }) {
       ]);
 
       const providers = provRes.data || [];
-      setStats({
-        totalProviders:      providers.length,
-        pendingVerification: providers.filter(p => p.is_verified === 0).length,
-        approved:            providers.filter(p => p.is_verified === 1).length,
-        rejected:            providers.filter(p => p.is_verified === -1).length,
+      setProviderStats({
+        total:   providers.length,
+        pending: providers.filter(p => p.is_verified === 0).length,
+        approved:providers.filter(p => p.is_verified === 1).length,
+        rejected:providers.filter(p => p.is_verified === -1).length,
       });
       setRecentPending(
         providers.filter(p => p.is_verified === 0)
           .sort((a,b) => new Date(b.created_at||b.updated_at) - new Date(a.created_at||a.updated_at))
           .slice(0, 5)
       );
-      if (ovRes) setExtraStats(ovRes.data?.totals || null);
+      // Use the fixed overview totals from API
+      if (ovRes?.data?.totals) setExtraStats(ovRes.data.totals);
     } catch (err) {
       console.error("Dashboard fetch error:", err);
     } finally {
@@ -70,6 +72,7 @@ export default function DashboardSection({ onSectionChange }) {
 
   return (
     <div className="space-y-6 pb-24 md:pb-0">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
@@ -83,45 +86,45 @@ export default function DashboardSection({ onSectionChange }) {
         )}
       </div>
 
-      {/* Provider stats */}
+      {/* Provider verification stats — from providers table (correct) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label:"TOTAL PROVIDERS", value:stats.totalProviders,      icon:Users,       color:"indigo" },
-          { label:"PENDING",         value:stats.pendingVerification,  icon:Clock,       color:"yellow", valueColor:"text-yellow-600" },
-          { label:"APPROVED",        value:stats.approved,             icon:ShieldCheck, color:"green",  valueColor:"text-green-600"  },
-          { label:"REJECTED",        value:stats.rejected,             icon:UserX,       color:"red",    valueColor:"text-red-600"    },
-        ].map(({label,value,icon:Icon,color,valueColor}) => (
+          { label:"TOTAL PROVIDERS", value: providerStats.total,    icon: Users,       bg:"bg-indigo-100", color:"text-indigo-600" },
+          { label:"PENDING",         value: providerStats.pending,   icon: Clock,       bg:"bg-yellow-100", color:"text-yellow-600", valColor:"text-yellow-600" },
+          { label:"APPROVED",        value: providerStats.approved,  icon: ShieldCheck, bg:"bg-green-100",  color:"text-green-600",  valColor:"text-green-600"  },
+          { label:"REJECTED",        value: providerStats.rejected,  icon: UserX,       bg:"bg-red-100",    color:"text-red-600",    valColor:"text-red-600"    },
+        ].map(({ label, value, icon: Icon, bg, color, valColor }) => (
           <div key={label} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow transition-all">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-gray-500 text-xs font-medium tracking-widest">{label}</p>
-                <p className={`text-3xl font-bold mt-2 ${valueColor||"text-gray-900"}`}>{value}</p>
+                <p className={`text-3xl font-bold mt-2 ${valColor || "text-gray-900"}`}>{value}</p>
               </div>
-              <div className={`w-10 h-10 bg-${color}-100 rounded-xl flex items-center justify-center`}>
-                <Icon size={22} className={`text-${color}-600`} />
+              <div className={`w-10 h-10 ${bg} rounded-xl flex items-center justify-center`}>
+                <Icon size={22} className={color} />
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Extra platform stats (if analytics route available) */}
+      {/* Platform-wide stats — from fixed /api/admin/overview (correct counts) */}
       {extraStats && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label:"TOTAL USERS",      value:extraStats.total_users,        icon:Users,        color:"purple" },
-            { label:"TOTAL BOOKINGS",   value:extraStats.total_bookings,     icon:BookOpen,     color:"blue"   },
-            { label:"PLATFORM REVENUE", value:`₹${Number(extraStats.total_revenue||0).toLocaleString("en-IN")}`, icon:IndianRupee, color:"green" },
-            { label:"OPEN COMPLAINTS",  value:extraStats.open_complaints,    icon:AlertTriangle,color:"red"    },
-          ].map(({label,value,icon:Icon,color}) => (
+            { label:"REGISTERED USERS",    value: extraStats.total_users,         icon: UserCheck,     bg:"bg-purple-100", color:"text-purple-600" },
+            { label:"TOTAL BOOKINGS",      value: extraStats.total_bookings,      icon: BookOpen,      bg:"bg-blue-100",   color:"text-blue-600"   },
+            { label:"PLATFORM REVENUE",    value: `₹${Number(extraStats.total_revenue||0).toLocaleString("en-IN")}`, icon: IndianRupee, bg:"bg-green-100", color:"text-green-600" },
+            { label:"OPEN COMPLAINTS",     value: extraStats.open_complaints,     icon: AlertTriangle, bg:"bg-red-100",    color:"text-red-600"    },
+          ].map(({ label, value, icon: Icon, bg, color }) => (
             <div key={label} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow transition-all">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-gray-500 text-xs font-medium tracking-widest">{label}</p>
                   <p className="text-2xl font-bold text-gray-900 mt-2">{value}</p>
                 </div>
-                <div className={`w-10 h-10 bg-${color}-100 rounded-xl flex items-center justify-center`}>
-                  <Icon size={22} className={`text-${color}-600`} />
+                <div className={`w-10 h-10 ${bg} rounded-xl flex items-center justify-center`}>
+                  <Icon size={22} className={color} />
                 </div>
               </div>
             </div>
@@ -129,14 +132,15 @@ export default function DashboardSection({ onSectionChange }) {
         </div>
       )}
 
-      {/* Recent pending */}
+      {/* Pending approvals table */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Recent Pending Approvals</h3>
             <p className="text-xs text-gray-500">Awaiting verification</p>
           </div>
-          <button onClick={fetchDashboardData} className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 text-sm font-medium transition">
+          <button onClick={fetchDashboardData}
+            className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 text-sm font-medium transition">
             <RefreshCw size={16} /> Refresh
           </button>
         </div>
@@ -150,21 +154,23 @@ export default function DashboardSection({ onSectionChange }) {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    {["Provider","Contact","Location","Professions","Actions"].map(h=>(
+                    {["Provider","Contact","Location","Professions","Actions"].map(h => (
                       <th key={h} className={`px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider ${h==="Actions"?"text-right":"text-left"}`}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 text-sm">
-                  {recentPending.map(p=>(
+                  {recentPending.map(p => (
                     <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 font-medium text-gray-900">{p.full_name||p.username}</td>
-                      <td className="px-6 py-4 text-gray-600">{p.email}<br/><span className="text-xs text-gray-500">{p.phone}</span></td>
+                      <td className="px-6 py-4 text-gray-600">
+                        {p.email}<br/><span className="text-xs text-gray-500">{p.phone}</span>
+                      </td>
                       <td className="px-6 py-4 text-gray-600">{p.district}, {p.region}</td>
                       <td className="px-6 py-4">
                         {p.professions ? (
                           <div className="flex flex-wrap gap-1">
-                            {p.professions.split(",").slice(0,3).map((pr,i)=>(
+                            {p.professions.split(",").slice(0,3).map((pr,i) => (
                               <span key={i} className="px-2.5 py-0.5 text-[10px] bg-blue-100 text-blue-700 rounded-md font-medium">{pr.trim()}</span>
                             ))}
                           </div>
@@ -172,8 +178,10 @@ export default function DashboardSection({ onSectionChange }) {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex gap-2 justify-end">
-                          <button onClick={()=>handleApprove(p.id)} className="px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-xl transition">Approve</button>
-                          <button onClick={()=>handleReject(p.id)}  className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-xl transition">Reject</button>
+                          <button onClick={() => handleApprove(p.id)}
+                            className="px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-xl transition">Approve</button>
+                          <button onClick={() => handleReject(p.id)}
+                            className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-xl transition">Reject</button>
                         </div>
                       </td>
                     </tr>
@@ -184,13 +192,13 @@ export default function DashboardSection({ onSectionChange }) {
 
             {/* Mobile */}
             <div className="sm:hidden divide-y divide-gray-100">
-              {recentPending.map(p=>(
+              {recentPending.map(p => (
                 <div key={p.id} className="p-4 space-y-2">
                   <p className="font-semibold text-sm text-gray-900">{p.full_name||p.username}</p>
                   <p className="text-xs text-gray-500">{p.email} • {p.district}</p>
                   <div className="flex gap-2 pt-1">
-                    <button onClick={()=>handleApprove(p.id)} className="flex-1 py-2 bg-green-600 text-white text-xs font-medium rounded-xl">Approve</button>
-                    <button onClick={()=>handleReject(p.id)}  className="flex-1 py-2 bg-red-600 text-white text-xs font-medium rounded-xl">Reject</button>
+                    <button onClick={() => handleApprove(p.id)} className="flex-1 py-2 bg-green-600 text-white text-xs font-medium rounded-xl">Approve</button>
+                    <button onClick={() => handleReject(p.id)}  className="flex-1 py-2 bg-red-600 text-white text-xs font-medium rounded-xl">Reject</button>
                   </div>
                 </div>
               ))}
