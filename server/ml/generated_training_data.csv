@@ -1,0 +1,501 @@
+provider_name,rating,response_time,review_count,amount,success_score,location,profession
+Elite AC,4.8,6,122,6133,1.00,Mavelikara,Painter
+Reliable Co,1.8,3,4,4095,0.45,Chengannur,Carpenter
+Best Plumbing,3.0,2,4,7650,0.69,Chengannur,Painter
+Quality Work,1.1,77,26,3872,0.23,Kayamkulam,Plumber
+Smart Home,2.4,79,48,4346,0.47,Alappuzha,Plumber
+Trusted Service,1.1,65,33,5625,0.22,Ambalappuzha,Home Cleaner
+Expert Hands,2.7,96,12,3684,0.55,Ambalappuzha,Plumber
+Best Plumbing,3.5,118,44,5455,0.70,Ambalappuzha,Carpenter
+Quick Service,3.7,56,34,4366,0.74,Mavelikara,AC Repair
+Fast Repair,3.0,86,46,4327,0.61,Chengannur,Carpenter
+Elite AC,2.2,91,2,3297,0.44,Ambalappuzha,Carpenter
+Best Plumbing,4.5,13,223,9365,1.00,Chengannur,Electrician
+Expert Hands,3.4,75,25,5295,0.69,Alappuzha,Home Cleaner
+Best Plumbing,4.5,116,86,4801,0.90,Mavelikara,Carpenter
+Reliable Co,2.9,86,7,7039,0.58,Mavelikara,AC Repair
+Reliable Co,1.1,18,17,4745,0.32,Mavelikara,AC Repair
+Fast Repair,1.6,0,18,3116,0.42,Kayamkulam,Electrician
+Quality Work,4.8,6,199,7320,1.00,Ambalappuzha,AC Repair
+Reliable Co,2.4,28,44,7054,0.58,Haripad,Home Cleaner
+Reliable Co,2.2,70,37,4864,0.45,Kayamkulam,Painter
+Smart Home,4.4,113,91,7012,0.88,Haripad,AC Repair
+Fast Repair,3.8,22,40,7364,0.86,Chengannur,Electrician
+Pro Electric,4.6,28,210,7548,1.00,Kayamkulam,Home Cleaner
+Quick Service,3.0,117,17,4356,0.60,Alappuzha,Plumber
+Reliable Co,1.8,57,40,3400,0.37,Alappuzha,Electrician
+Expert Hands,1.7,71,47,2035,0.34,Chengannur,Carpenter
+Fast Repair,2.6,115,17,5857,0.51,Alappuzha,Home Cleaner
+Elite AC,1.2,36,29,2228,0.24,Kayamkulam,AC Repair
+Smart Home,1.4,71,44,3702,0.28,Mavelikara,Carpenter
+Expert Hands,1.8,55,8,3728,0.37,Haripad,AC Repair
+Elite AC,5.0,5,51,7734,1.00,Chengannur,Carpenter
+Smart Home,1.1,56,15,4732,0.22,Mavelikara,Electrician
+Quick Service,2.4,13,18,3019,0.59,Kayamkulam,Home Cleaner
+Quick Service,2.6,91,12,4944,0.52,Mavelikara,Carpenter
+Trusted Service,1.0,44,30,3109,0.21,Alappuzha,Home Cleaner
+Fast Repair,3.4,62,39,7301,0.67,Mavelikara,Electrician
+Elite AC,3.8,62,20,8026,0.76,Alappuzha,Electrician
+Quality Work,4.5,25,57,5927,1.00,Kayamkulam,Home Cleaner
+Smart Home,3.0,52,0,4880,0.60,Mavelikara,Electrician
+Fast Repair,3.7,85,36,5901,0.75,Ambalappuzha,Home Cleaner
+Quick Service,3.4,101,18,7884,0.68,Alappuzha,Electrician
+Trusted Service,2.4,116,14,3291,0.48,Kayamkulam,Electrician
+Reliable Co,4.2,45,179,5767,0.84,Haripad,Painter
+Quick Service,2.1,70,1,6805,0.42,Chengannur,Painter
+Quick Service,1.4,81,30,2026,0.29,Ambalappuzha,Plumber
+Pro Electric,1.1,6,23,2554,0.33,Ambalappuzha,Electrician
+Fast Repair,2.2,73,39,3020,0.45,Chengannur,Painter
+Expert Hands,4.7,11,158,6784,1.00,Alappuzha,Carpenter
+Smart Home,3.2,114,37,3671,0.65,Mavelikara,Home Cleaner
+Trusted Service,2.8,117,21,5519,0.57,Alappuzha,Plumber
+Trusted Service,5.0,8,209,5082,1.00,Ambalappuzha,Electrician
+Best Plumbing,2.6,83,23,5016,0.52,Ambalappuzha,AC Repair
+Expert Hands,4.3,46,154,5778,0.86,Ambalappuzha,Carpenter
+Quick Service,2.0,50,28,2828,0.40,Mavelikara,Plumber
+Trusted Service,2.3,84,48,3117,0.46,Ambalappuzha,AC Repair
+Fast Repair,2.5,11,23,6809,0.61,Alappuzha,Electrician
+Elite AC,4.3,14,140,6954,0.97,Mavelikara,AC Repair
+Elite AC,2.5,117,35,4682,0.49,Kayamkulam,Carpenter
+Quality Work,3.4,41,9,7912,0.68,Chengannur,Electrician
+Expert Hands,1.2,117,1,3289,0.24,Ambalappuzha,Painter
+Smart Home,3.0,43,9,5823,0.59,Ambalappuzha,Plumber
+Best Plumbing,3.0,35,34,7256,0.60,Mavelikara,Home Cleaner
+Trusted Service,1.9,66,10,3064,0.37,Alappuzha,Carpenter
+Reliable Co,1.8,10,16,6032,0.45,Kayamkulam,Electrician
+Reliable Co,3.3,78,28,7055,0.66,Kayamkulam,Plumber
+Elite AC,1.9,101,31,2867,0.37,Ambalappuzha,Electrician
+Fast Repair,4.0,92,7,5008,0.80,Alappuzha,Home Cleaner
+Expert Hands,3.7,86,18,6516,0.74,Ambalappuzha,Painter
+Best Plumbing,4.5,25,129,5883,1.00,Alappuzha,Painter
+Expert Hands,4.6,15,80,7048,1.00,Kayamkulam,Carpenter
+Expert Hands,1.8,65,0,2554,0.36,Alappuzha,AC Repair
+Smart Home,1.7,108,17,5067,0.34,Haripad,Carpenter
+Trusted Service,1.3,97,46,1355,0.26,Haripad,Electrician
+Expert Hands,1.0,113,5,5819,0.20,Alappuzha,Carpenter
+Reliable Co,3.9,11,47,5811,0.87,Chengannur,Plumber
+Expert Hands,4.0,66,240,8994,0.80,Mavelikara,Electrician
+Quality Work,1.4,87,25,2833,0.29,Kayamkulam,Electrician
+Expert Hands,3.2,107,44,7238,0.65,Chengannur,Electrician
+Quick Service,2.9,82,12,6731,0.58,Haripad,Carpenter
+Trusted Service,2.6,93,44,3538,0.52,Chengannur,Electrician
+Best Plumbing,4.4,7,96,8667,0.98,Kayamkulam,Electrician
+Quick Service,1.6,101,49,5594,0.31,Haripad,Plumber
+Smart Home,1.4,56,44,6368,0.29,Kayamkulam,Painter
+Smart Home,3.5,52,19,4866,0.70,Ambalappuzha,Electrician
+Best Plumbing,3.4,30,4,8380,0.68,Mavelikara,Plumber
+Reliable Co,4.6,10,151,6280,1.00,Chengannur,Home Cleaner
+Quick Service,4.1,74,123,7052,0.82,Chengannur,AC Repair
+Reliable Co,2.6,107,39,4563,0.52,Ambalappuzha,Plumber
+Quick Service,4.4,74,202,9335,0.89,Haripad,Electrician
+Best Plumbing,1.7,37,46,4346,0.34,Kayamkulam,Home Cleaner
+Smart Home,2.3,120,12,7183,0.47,Chengannur,AC Repair
+Quick Service,5.0,9,103,5782,1.00,Mavelikara,Carpenter
+Pro Electric,4.7,26,137,7839,1.00,Kayamkulam,Painter
+Reliable Co,5.0,8,169,6353,1.00,Haripad,Home Cleaner
+Elite AC,2.9,2,17,5961,0.69,Alappuzha,Plumber
+Best Plumbing,2.2,104,29,2502,0.43,Alappuzha,Painter
+Smart Home,4.3,46,235,5640,0.87,Ambalappuzha,Electrician
+Elite AC,3.0,102,16,3960,0.59,Kayamkulam,Plumber
+Fast Repair,3.9,29,20,8052,0.88,Alappuzha,Home Cleaner
+Quick Service,2.0,92,11,3672,0.40,Mavelikara,Carpenter
+Fast Repair,1.5,20,32,4455,0.40,Haripad,Painter
+Reliable Co,1.9,7,15,6305,0.49,Alappuzha,Electrician
+Reliable Co,2.8,35,35,3679,0.56,Alappuzha,Painter
+Fast Repair,1.9,34,36,6476,0.38,Ambalappuzha,AC Repair
+Quick Service,2.1,118,29,6898,0.42,Chengannur,Carpenter
+Fast Repair,3.8,79,16,4572,0.77,Mavelikara,Painter
+Trusted Service,4.4,24,123,5562,0.98,Kayamkulam,Painter
+Fast Repair,1.2,10,27,4301,0.33,Alappuzha,Carpenter
+Smart Home,3.9,56,37,6777,0.77,Haripad,Plumber
+Reliable Co,3.1,6,37,4449,0.71,Alappuzha,Home Cleaner
+Expert Hands,1.8,41,7,5169,0.36,Haripad,Painter
+Elite AC,3.3,1,18,4271,0.76,Mavelikara,Carpenter
+Quality Work,3.8,87,6,8775,0.76,Alappuzha,Electrician
+Fast Repair,1.2,60,19,2775,0.25,Ambalappuzha,Electrician
+Best Plumbing,1.8,15,9,4805,0.45,Mavelikara,AC Repair
+Elite AC,3.3,61,27,7286,0.67,Haripad,AC Repair
+Pro Electric,1.1,68,14,3310,0.22,Mavelikara,Electrician
+Quick Service,3.5,106,27,6873,0.69,Mavelikara,AC Repair
+Quality Work,2.2,29,25,6625,0.54,Haripad,Carpenter
+Quick Service,4.0,118,111,7502,0.80,Kayamkulam,AC Repair
+Trusted Service,1.8,53,0,3231,0.36,Chengannur,Electrician
+Fast Repair,3.8,76,19,5571,0.76,Haripad,AC Repair
+Pro Electric,1.6,35,15,5556,0.31,Ambalappuzha,Painter
+Best Plumbing,3.5,31,13,4150,0.70,Ambalappuzha,Home Cleaner
+Quick Service,1.8,34,0,2760,0.35,Alappuzha,Home Cleaner
+Best Plumbing,1.0,78,48,4923,0.21,Mavelikara,Carpenter
+Reliable Co,1.6,77,41,1790,0.31,Alappuzha,Painter
+Reliable Co,1.1,12,49,3312,0.31,Haripad,Plumber
+Expert Hands,3.9,116,28,6161,0.78,Haripad,Plumber
+Trusted Service,3.2,40,34,5975,0.64,Alappuzha,Painter
+Expert Hands,4.2,106,140,7906,0.84,Mavelikara,AC Repair
+Pro Electric,2.9,90,31,6771,0.59,Ambalappuzha,Plumber
+Trusted Service,2.7,93,38,6922,0.54,Haripad,Home Cleaner
+Pro Electric,3.8,114,11,5060,0.77,Kayamkulam,Carpenter
+Expert Hands,4.8,1,77,6418,1.00,Ambalappuzha,Painter
+Quality Work,4.2,102,193,7412,0.85,Mavelikara,Electrician
+Fast Repair,4.0,64,41,4612,0.79,Mavelikara,Painter
+Best Plumbing,2.4,84,6,7013,0.47,Haripad,AC Repair
+Smart Home,1.3,91,2,3563,0.25,Mavelikara,Painter
+Expert Hands,2.8,83,45,3891,0.55,Chengannur,Carpenter
+Fast Repair,3.5,11,23,5277,0.80,Alappuzha,Electrician
+Reliable Co,1.3,0,22,2864,0.36,Alappuzha,AC Repair
+Trusted Service,1.0,76,12,2451,0.21,Alappuzha,Electrician
+Best Plumbing,2.4,103,11,5717,0.48,Kayamkulam,Carpenter
+Quality Work,3.6,106,16,6065,0.72,Kayamkulam,Home Cleaner
+Reliable Co,1.2,80,14,1825,0.24,Haripad,AC Repair
+Expert Hands,1.2,85,31,5429,0.24,Kayamkulam,AC Repair
+Smart Home,1.6,58,5,5699,0.32,Ambalappuzha,AC Repair
+Reliable Co,3.1,43,15,5210,0.62,Kayamkulam,Electrician
+Elite AC,4.3,9,214,4957,0.97,Kayamkulam,Carpenter
+Quick Service,1.0,43,16,2667,0.20,Kayamkulam,Plumber
+Pro Electric,1.1,11,13,5952,0.31,Haripad,Carpenter
+Quality Work,3.8,53,18,6970,0.76,Chengannur,Carpenter
+Smart Home,2.3,119,41,5326,0.46,Alappuzha,Electrician
+Smart Home,2.2,105,12,4481,0.43,Mavelikara,AC Repair
+Fast Repair,2.0,90,45,6646,0.40,Haripad,Plumber
+Fast Repair,1.8,14,35,3394,0.46,Kayamkulam,Painter
+Best Plumbing,1.6,71,2,3101,0.32,Chengannur,Electrician
+Smart Home,3.1,113,13,3525,0.63,Mavelikara,Electrician
+Pro Electric,1.7,68,41,6295,0.33,Mavelikara,Electrician
+Expert Hands,4.4,20,76,7263,0.97,Ambalappuzha,Plumber
+Reliable Co,3.5,64,5,8034,0.70,Haripad,AC Repair
+Pro Electric,4.8,0,89,5726,1.00,Chengannur,Plumber
+Fast Repair,4.2,9,238,8977,0.93,Kayamkulam,Electrician
+Quick Service,2.6,14,35,5945,0.63,Haripad,Carpenter
+Pro Electric,3.5,30,5,6330,0.79,Ambalappuzha,AC Repair
+Trusted Service,2.4,23,43,2948,0.59,Chengannur,Painter
+Smart Home,3.4,120,25,5408,0.68,Ambalappuzha,Carpenter
+Reliable Co,1.6,19,31,6359,0.41,Chengannur,Electrician
+Elite AC,3.8,40,17,6922,0.76,Mavelikara,Plumber
+Fast Repair,4.1,59,91,6869,0.81,Ambalappuzha,Electrician
+Fast Repair,3.8,67,15,4249,0.76,Ambalappuzha,Painter
+Reliable Co,1.7,4,32,1989,0.43,Kayamkulam,Electrician
+Quality Work,3.3,97,15,4405,0.66,Mavelikara,Plumber
+Pro Electric,3.4,11,26,3881,0.79,Haripad,Home Cleaner
+Quick Service,4.9,27,118,6625,1.00,Kayamkulam,AC Repair
+Best Plumbing,1.3,84,32,3996,0.25,Mavelikara,Painter
+Fast Repair,4.6,21,205,9408,1.00,Haripad,Carpenter
+Elite AC,4.6,3,182,8154,1.00,Haripad,Electrician
+Best Plumbing,4.8,3,159,7502,1.00,Chengannur,Painter
+Quality Work,1.4,48,7,2216,0.28,Alappuzha,Electrician
+Quality Work,2.4,43,16,4042,0.48,Ambalappuzha,Painter
+Reliable Co,2.7,86,29,6622,0.53,Kayamkulam,Painter
+Trusted Service,2.7,111,7,5674,0.54,Haripad,Painter
+Fast Repair,2.8,56,5,7809,0.57,Ambalappuzha,Painter
+Smart Home,2.7,18,25,4763,0.64,Chengannur,Painter
+Expert Hands,1.5,100,1,6066,0.30,Kayamkulam,Carpenter
+Elite AC,4.0,98,230,7606,0.80,Alappuzha,Carpenter
+Quick Service,2.9,46,32,7659,0.57,Chengannur,Carpenter
+Quality Work,2.8,2,22,3667,0.66,Alappuzha,AC Repair
+Trusted Service,1.0,31,3,1835,0.20,Chengannur,Home Cleaner
+Smart Home,3.1,28,40,6652,0.71,Haripad,Painter
+Quality Work,4.8,27,58,5860,1.00,Chengannur,Carpenter
+Reliable Co,2.2,94,6,6944,0.45,Chengannur,Electrician
+Pro Electric,2.4,84,11,6385,0.49,Alappuzha,Home Cleaner
+Pro Electric,3.9,28,37,5099,0.89,Kayamkulam,Home Cleaner
+Expert Hands,4.0,17,9,8112,0.90,Kayamkulam,AC Repair
+Expert Hands,4.7,23,215,5700,1.00,Haripad,Electrician
+Pro Electric,1.1,94,34,5525,0.22,Chengannur,Electrician
+Quality Work,4.2,119,186,6290,0.83,Haripad,Carpenter
+Expert Hands,1.1,96,45,3014,0.21,Chengannur,Home Cleaner
+Fast Repair,4.9,30,147,9739,1.00,Mavelikara,AC Repair
+Fast Repair,2.8,75,48,7509,0.56,Kayamkulam,Electrician
+Best Plumbing,1.5,107,25,2744,0.30,Kayamkulam,Electrician
+Quick Service,1.3,96,47,1715,0.27,Ambalappuzha,AC Repair
+Quick Service,3.1,51,38,6690,0.61,Alappuzha,AC Repair
+Pro Electric,1.2,115,11,2632,0.24,Kayamkulam,Electrician
+Fast Repair,4.6,19,116,8421,1.00,Kayamkulam,Home Cleaner
+Fast Repair,3.1,14,48,6686,0.72,Haripad,Carpenter
+Reliable Co,3.0,75,29,6093,0.60,Haripad,Plumber
+Expert Hands,2.2,10,3,2928,0.53,Haripad,Home Cleaner
+Elite AC,3.9,23,7,5722,0.89,Ambalappuzha,Plumber
+Expert Hands,4.2,95,209,7465,0.84,Chengannur,AC Repair
+Reliable Co,4.8,7,63,8906,1.00,Haripad,Electrician
+Expert Hands,3.6,90,34,5794,0.72,Ambalappuzha,Carpenter
+Reliable Co,4.9,26,169,5908,1.00,Chengannur,Painter
+Fast Repair,2.4,63,37,7233,0.48,Ambalappuzha,Carpenter
+Pro Electric,2.2,71,30,6037,0.43,Chengannur,Home Cleaner
+Trusted Service,2.0,114,7,3553,0.39,Ambalappuzha,Carpenter
+Pro Electric,1.6,83,20,2096,0.32,Kayamkulam,Plumber
+Best Plumbing,1.8,70,11,3869,0.36,Mavelikara,AC Repair
+Quick Service,2.6,65,26,4661,0.53,Mavelikara,Painter
+Fast Repair,3.6,113,39,4002,0.72,Chengannur,Electrician
+Fast Repair,2.7,19,44,7571,0.64,Mavelikara,Plumber
+Quick Service,1.0,2,29,5651,0.31,Chengannur,AC Repair
+Reliable Co,1.1,111,48,2398,0.22,Kayamkulam,AC Repair
+Best Plumbing,4.4,11,110,4786,0.98,Kayamkulam,Electrician
+Pro Electric,3.2,67,41,5695,0.64,Haripad,Painter
+Trusted Service,4.8,3,207,4941,1.00,Kayamkulam,Plumber
+Quick Service,1.4,6,7,4780,0.38,Alappuzha,Carpenter
+Reliable Co,4.7,2,94,7440,1.00,Haripad,Electrician
+Quick Service,1.3,114,40,5679,0.27,Chengannur,Electrician
+Quality Work,1.5,57,49,3240,0.31,Alappuzha,Home Cleaner
+Quick Service,1.4,24,35,2013,0.38,Kayamkulam,Carpenter
+Quick Service,4.1,63,55,6269,0.81,Kayamkulam,Home Cleaner
+Smart Home,3.4,60,44,3895,0.67,Alappuzha,AC Repair
+Reliable Co,1.9,33,18,6425,0.38,Kayamkulam,Home Cleaner
+Reliable Co,4.7,12,243,4968,1.00,Haripad,Painter
+Pro Electric,3.6,25,23,6407,0.81,Alappuzha,Home Cleaner
+Pro Electric,4.8,19,191,7887,1.00,Alappuzha,Carpenter
+Reliable Co,2.8,25,5,6411,0.66,Kayamkulam,Painter
+Quality Work,2.5,114,32,3688,0.50,Kayamkulam,AC Repair
+Quality Work,4.6,8,94,6047,1.00,Mavelikara,Painter
+Quick Service,4.6,7,130,8551,1.00,Ambalappuzha,Carpenter
+Best Plumbing,4.5,14,99,6843,1.00,Kayamkulam,AC Repair
+Trusted Service,1.8,32,13,2823,0.36,Kayamkulam,Carpenter
+Reliable Co,1.0,79,12,1855,0.21,Ambalappuzha,Painter
+Elite AC,1.2,6,34,5000,0.34,Chengannur,Home Cleaner
+Best Plumbing,3.4,11,11,6657,0.77,Alappuzha,Home Cleaner
+Expert Hands,2.8,80,34,4856,0.56,Ambalappuzha,Plumber
+Reliable Co,4.9,17,174,9288,1.00,Kayamkulam,Home Cleaner
+Elite AC,2.5,74,21,3487,0.50,Chengannur,Plumber
+Fast Repair,3.4,65,13,6224,0.68,Ambalappuzha,Home Cleaner
+Reliable Co,1.5,26,42,4034,0.40,Mavelikara,Home Cleaner
+Quick Service,1.8,33,5,3564,0.36,Ambalappuzha,Plumber
+Quick Service,1.0,99,3,5314,0.21,Kayamkulam,Electrician
+Best Plumbing,2.2,9,27,5980,0.55,Alappuzha,Electrician
+Best Plumbing,1.1,19,27,2954,0.33,Alappuzha,AC Repair
+Fast Repair,2.5,22,17,2931,0.59,Kayamkulam,Home Cleaner
+Elite AC,3.5,87,47,5638,0.69,Chengannur,Plumber
+Best Plumbing,1.4,82,35,1644,0.29,Ambalappuzha,Carpenter
+Pro Electric,4.5,73,205,9079,0.89,Haripad,Painter
+Reliable Co,4.2,68,57,8652,0.84,Ambalappuzha,AC Repair
+Fast Repair,1.4,69,32,3489,0.29,Alappuzha,Painter
+Quick Service,3.5,35,31,7903,0.70,Ambalappuzha,AC Repair
+Elite AC,2.2,92,38,4453,0.43,Kayamkulam,AC Repair
+Trusted Service,3.8,65,10,3789,0.75,Haripad,Carpenter
+Quick Service,4.9,20,167,5516,1.00,Alappuzha,Plumber
+Expert Hands,4.4,112,235,8218,0.88,Alappuzha,Painter
+Quick Service,2.2,45,41,3641,0.44,Alappuzha,Electrician
+Elite AC,2.6,68,7,7179,0.52,Chengannur,Plumber
+Elite AC,2.2,25,15,4733,0.54,Kayamkulam,Home Cleaner
+Trusted Service,4.5,42,184,9155,0.89,Alappuzha,Carpenter
+Pro Electric,2.7,85,0,5532,0.54,Kayamkulam,AC Repair
+Expert Hands,3.0,62,2,3866,0.59,Kayamkulam,Plumber
+Best Plumbing,3.7,72,0,5673,0.74,Alappuzha,AC Repair
+Reliable Co,1.7,87,21,5981,0.35,Haripad,AC Repair
+Elite AC,2.1,18,32,3724,0.52,Chengannur,Painter
+Elite AC,3.2,35,0,4222,0.63,Chengannur,AC Repair
+Elite AC,3.6,73,25,3803,0.72,Mavelikara,Carpenter
+Best Plumbing,5.0,20,221,6768,1.00,Mavelikara,Painter
+Elite AC,3.2,110,15,6289,0.64,Chengannur,Home Cleaner
+Reliable Co,2.1,111,38,5774,0.41,Mavelikara,Painter
+Quick Service,4.6,1,94,7773,1.00,Alappuzha,Home Cleaner
+Expert Hands,3.0,106,47,6162,0.60,Ambalappuzha,Plumber
+Trusted Service,2.8,31,9,4165,0.56,Haripad,Electrician
+Quality Work,2.2,61,24,5679,0.43,Mavelikara,Painter
+Quick Service,2.0,102,39,3890,0.39,Haripad,Painter
+Pro Electric,1.9,60,15,4846,0.38,Chengannur,Electrician
+Fast Repair,1.1,79,44,3314,0.21,Alappuzha,Plumber
+Reliable Co,4.6,7,69,7212,1.00,Alappuzha,Plumber
+Best Plumbing,4.9,24,201,8557,1.00,Ambalappuzha,Home Cleaner
+Reliable Co,3.9,78,8,7550,0.77,Alappuzha,AC Repair
+Expert Hands,3.9,56,34,7528,0.78,Alappuzha,Home Cleaner
+Fast Repair,1.4,117,8,1852,0.27,Alappuzha,Home Cleaner
+Quality Work,2.6,74,8,7039,0.53,Mavelikara,AC Repair
+Trusted Service,2.8,55,14,5189,0.55,Alappuzha,AC Repair
+Quality Work,1.8,41,0,4352,0.35,Alappuzha,Home Cleaner
+Fast Repair,4.5,63,104,8460,0.89,Haripad,Plumber
+Quality Work,4.0,96,142,4473,0.81,Haripad,Carpenter
+Fast Repair,4.0,12,7,8696,0.90,Alappuzha,AC Repair
+Expert Hands,4.7,26,110,8730,1.00,Alappuzha,Plumber
+Quality Work,1.9,56,38,2581,0.38,Kayamkulam,Electrician
+Elite AC,3.9,97,35,4847,0.77,Mavelikara,Electrician
+Trusted Service,2.8,40,16,7284,0.55,Haripad,Carpenter
+Expert Hands,3.3,64,2,6074,0.65,Haripad,Home Cleaner
+Quality Work,3.6,106,40,4786,0.71,Haripad,Electrician
+Trusted Service,3.5,51,45,3941,0.71,Kayamkulam,Painter
+Best Plumbing,1.8,98,19,6179,0.35,Ambalappuzha,Home Cleaner
+Fast Repair,4.0,52,212,4100,0.81,Mavelikara,Home Cleaner
+Fast Repair,1.3,64,5,2491,0.26,Kayamkulam,Carpenter
+Trusted Service,3.5,79,18,7261,0.69,Haripad,Home Cleaner
+Reliable Co,2.1,103,15,5463,0.42,Alappuzha,Home Cleaner
+Quality Work,1.5,12,39,2929,0.40,Chengannur,Carpenter
+Quality Work,3.6,20,30,6246,0.82,Haripad,Carpenter
+Trusted Service,4.2,104,163,7662,0.85,Chengannur,Home Cleaner
+Reliable Co,1.3,103,9,4902,0.27,Kayamkulam,AC Repair
+Quick Service,2.4,20,39,3943,0.59,Haripad,Painter
+Quick Service,3.1,55,5,4666,0.62,Kayamkulam,Home Cleaner
+Reliable Co,1.8,83,9,2963,0.35,Kayamkulam,Carpenter
+Expert Hands,3.9,35,43,8001,0.77,Alappuzha,Home Cleaner
+Smart Home,4.6,8,205,6137,1.00,Ambalappuzha,Painter
+Quick Service,1.3,75,44,2950,0.27,Alappuzha,Carpenter
+Smart Home,2.7,76,0,5065,0.55,Haripad,AC Repair
+Fast Repair,2.5,118,23,4538,0.51,Chengannur,AC Repair
+Trusted Service,2.3,83,13,3384,0.46,Ambalappuzha,Painter
+Fast Repair,4.9,6,234,9435,1.00,Mavelikara,Carpenter
+Quick Service,2.6,52,10,3927,0.53,Haripad,AC Repair
+Elite AC,2.6,31,29,3894,0.53,Haripad,AC Repair
+Smart Home,2.5,22,34,6045,0.60,Kayamkulam,Plumber
+Reliable Co,2.1,9,14,4271,0.51,Chengannur,Home Cleaner
+Reliable Co,1.4,61,25,4938,0.28,Mavelikara,Plumber
+Elite AC,1.0,51,34,5413,0.20,Kayamkulam,Carpenter
+Pro Electric,2.2,10,0,5734,0.54,Chengannur,AC Repair
+Smart Home,4.7,22,136,5182,1.00,Alappuzha,Carpenter
+Pro Electric,4.6,29,234,5801,1.00,Chengannur,Carpenter
+Quality Work,2.3,84,49,3432,0.46,Mavelikara,Plumber
+Quick Service,1.2,20,34,4344,0.34,Haripad,Carpenter
+Quality Work,3.0,1,9,6105,0.71,Haripad,Electrician
+Quick Service,4.4,48,216,4532,0.88,Kayamkulam,Carpenter
+Smart Home,2.7,74,20,6950,0.54,Mavelikara,AC Repair
+Trusted Service,1.6,1,32,3544,0.41,Chengannur,Electrician
+Quality Work,4.7,15,90,8576,1.00,Mavelikara,Home Cleaner
+Trusted Service,3.3,43,49,6041,0.66,Ambalappuzha,Carpenter
+Trusted Service,2.8,43,14,7185,0.57,Alappuzha,AC Repair
+Trusted Service,3.1,58,42,6998,0.63,Alappuzha,Electrician
+Quality Work,4.0,93,150,5946,0.80,Alappuzha,Carpenter
+Quick Service,1.8,107,6,6475,0.35,Kayamkulam,Electrician
+Smart Home,1.7,4,48,6532,0.44,Kayamkulam,AC Repair
+Quick Service,3.0,107,26,4471,0.60,Haripad,Carpenter
+Smart Home,2.7,55,36,4303,0.54,Haripad,Electrician
+Reliable Co,3.8,46,0,7856,0.77,Alappuzha,Electrician
+Fast Repair,2.8,90,10,3302,0.55,Mavelikara,Painter
+Trusted Service,1.6,111,22,2586,0.32,Kayamkulam,Home Cleaner
+Best Plumbing,3.3,22,28,4197,0.76,Chengannur,AC Repair
+Trusted Service,2.4,56,43,7019,0.49,Chengannur,Plumber
+Best Plumbing,3.8,53,21,4643,0.77,Ambalappuzha,Electrician
+Best Plumbing,2.8,106,19,7027,0.57,Kayamkulam,Plumber
+Trusted Service,1.2,52,19,2770,0.24,Alappuzha,Electrician
+Fast Repair,4.4,17,168,4686,0.98,Alappuzha,Carpenter
+Quick Service,4.3,116,166,8027,0.86,Kayamkulam,Painter
+Elite AC,4.3,34,167,5724,0.85,Mavelikara,Carpenter
+Quick Service,3.3,110,8,5829,0.67,Haripad,Plumber
+Smart Home,4.3,42,241,8454,0.86,Chengannur,Painter
+Best Plumbing,4.0,99,248,6863,0.81,Ambalappuzha,Painter
+Quick Service,4.2,7,220,9238,0.95,Mavelikara,Carpenter
+Pro Electric,2.1,70,39,4609,0.42,Mavelikara,Carpenter
+Quality Work,3.5,41,7,7071,0.69,Mavelikara,Carpenter
+Fast Repair,2.2,119,20,4960,0.44,Haripad,Home Cleaner
+Reliable Co,3.9,8,49,4291,0.88,Haripad,Painter
+Fast Repair,2.8,32,27,6160,0.56,Mavelikara,Carpenter
+Best Plumbing,4.4,104,237,7911,0.88,Haripad,Electrician
+Reliable Co,1.1,55,48,2608,0.23,Ambalappuzha,AC Repair
+Best Plumbing,1.7,111,43,5288,0.34,Chengannur,Electrician
+Pro Electric,1.2,2,24,4982,0.34,Kayamkulam,Home Cleaner
+Fast Repair,2.9,0,46,6587,0.67,Kayamkulam,Home Cleaner
+Elite AC,2.2,105,38,5957,0.43,Haripad,Plumber
+Elite AC,4.9,29,71,7986,1.00,Alappuzha,Carpenter
+Quality Work,3.7,35,9,5561,0.74,Alappuzha,Painter
+Best Plumbing,4.5,6,163,7393,1.00,Ambalappuzha,Plumber
+Pro Electric,1.7,29,41,4709,0.45,Alappuzha,Plumber
+Quality Work,4.2,31,169,8144,0.85,Kayamkulam,Plumber
+Trusted Service,3.3,104,21,7437,0.65,Chengannur,Carpenter
+Expert Hands,2.4,59,35,5690,0.47,Chengannur,Painter
+Quick Service,1.8,12,48,3667,0.45,Mavelikara,Carpenter
+Expert Hands,1.4,103,46,2913,0.27,Chengannur,Painter
+Pro Electric,2.2,24,31,5504,0.55,Alappuzha,Painter
+Expert Hands,1.6,37,0,2770,0.32,Kayamkulam,AC Repair
+Pro Electric,2.6,33,30,2645,0.52,Kayamkulam,Plumber
+Quality Work,4.3,35,138,6492,0.87,Chengannur,AC Repair
+Fast Repair,4.2,1,65,9045,0.95,Ambalappuzha,Electrician
+Elite AC,4.2,27,81,8165,0.94,Kayamkulam,Electrician
+Elite AC,3.8,76,30,8153,0.76,Kayamkulam,AC Repair
+Best Plumbing,2.5,115,20,5294,0.50,Mavelikara,Electrician
+Quick Service,2.1,23,9,3255,0.52,Ambalappuzha,Plumber
+Expert Hands,2.7,24,0,4030,0.64,Chengannur,Electrician
+Fast Repair,4.0,82,29,7779,0.79,Mavelikara,Carpenter
+Smart Home,4.5,34,221,7572,0.89,Alappuzha,Painter
+Elite AC,3.8,120,29,5954,0.75,Chengannur,Plumber
+Elite AC,3.2,73,46,4466,0.64,Haripad,Electrician
+Expert Hands,3.9,84,5,7272,0.78,Haripad,Electrician
+Pro Electric,2.4,71,14,3019,0.48,Alappuzha,Plumber
+Pro Electric,4.0,48,210,8244,0.81,Alappuzha,AC Repair
+Quality Work,2.5,76,31,5034,0.49,Alappuzha,Painter
+Pro Electric,4.1,34,177,8289,0.83,Kayamkulam,Plumber
+Elite AC,2.5,20,33,6629,0.60,Haripad,Painter
+Elite AC,1.4,20,34,3620,0.37,Alappuzha,AC Repair
+Trusted Service,4.1,23,222,5890,0.92,Mavelikara,Carpenter
+Quality Work,4.1,99,56,7699,0.81,Kayamkulam,Electrician
+Reliable Co,2.2,42,29,6267,0.44,Alappuzha,AC Repair
+Quick Service,2.6,85,23,3760,0.51,Kayamkulam,Plumber
+Quick Service,4.0,58,22,5467,0.79,Haripad,Electrician
+Quality Work,2.4,20,12,4923,0.58,Ambalappuzha,Home Cleaner
+Pro Electric,3.4,30,8,7258,0.68,Chengannur,Carpenter
+Best Plumbing,4.7,30,62,5362,1.00,Kayamkulam,AC Repair
+Pro Electric,2.2,65,10,4350,0.44,Mavelikara,Home Cleaner
+Quick Service,1.2,27,14,4556,0.33,Ambalappuzha,Plumber
+Quality Work,2.1,94,42,3451,0.42,Kayamkulam,Carpenter
+Smart Home,4.9,22,85,7250,1.00,Chengannur,Electrician
+Best Plumbing,4.7,17,94,6318,1.00,Kayamkulam,Home Cleaner
+Expert Hands,1.0,56,38,1689,0.21,Mavelikara,Plumber
+Expert Hands,1.6,106,32,4261,0.33,Mavelikara,Home Cleaner
+Expert Hands,3.9,97,21,8839,0.78,Kayamkulam,Electrician
+Best Plumbing,2.3,70,44,4276,0.46,Alappuzha,Electrician
+Elite AC,5.0,27,151,7053,1.00,Alappuzha,Electrician
+Fast Repair,1.4,17,4,1939,0.38,Haripad,Plumber
+Expert Hands,1.0,69,33,2407,0.20,Kayamkulam,Painter
+Smart Home,3.8,55,15,6877,0.76,Ambalappuzha,Carpenter
+Smart Home,1.8,44,45,2024,0.36,Mavelikara,Painter
+Expert Hands,2.8,10,29,3823,0.65,Alappuzha,Painter
+Elite AC,4.2,87,86,8703,0.84,Chengannur,Carpenter
+Best Plumbing,3.3,90,5,4528,0.65,Haripad,Carpenter
+Elite AC,3.6,33,21,8506,0.72,Ambalappuzha,AC Repair
+Expert Hands,2.2,73,2,2484,0.44,Ambalappuzha,AC Repair
+Reliable Co,4.4,2,100,4943,0.97,Ambalappuzha,Electrician
+Quick Service,1.8,60,33,2127,0.36,Kayamkulam,Plumber
+Quick Service,3.3,113,0,4221,0.65,Alappuzha,Carpenter
+Elite AC,4.2,88,232,4445,0.83,Mavelikara,Carpenter
+Pro Electric,3.1,46,17,5797,0.62,Kayamkulam,Carpenter
+Quality Work,3.9,119,28,8197,0.78,Mavelikara,Painter
+Elite AC,4.4,65,70,8418,0.89,Mavelikara,Carpenter
+Trusted Service,2.1,25,48,2520,0.52,Mavelikara,Carpenter
+Quick Service,2.0,75,6,6742,0.40,Alappuzha,Painter
+Smart Home,2.6,5,33,7289,0.61,Ambalappuzha,Painter
+Fast Repair,1.5,1,11,1889,0.40,Alappuzha,Home Cleaner
+Quick Service,5.0,27,110,9674,1.00,Mavelikara,Electrician
+Reliable Co,2.9,59,30,6982,0.58,Ambalappuzha,Electrician
+Expert Hands,2.4,62,45,3064,0.48,Chengannur,Electrician
+Fast Repair,4.6,2,216,9303,1.00,Ambalappuzha,Home Cleaner
+Fast Repair,1.4,47,45,4637,0.29,Kayamkulam,Carpenter
+Quick Service,1.6,96,35,2159,0.32,Ambalappuzha,Carpenter
+Quality Work,3.6,82,21,6431,0.72,Mavelikara,Carpenter
+Quick Service,3.3,42,13,3547,0.67,Ambalappuzha,Electrician
+Elite AC,4.5,97,145,7573,0.89,Ambalappuzha,Painter
+Fast Repair,2.7,81,36,3552,0.54,Haripad,AC Repair
+Pro Electric,3.6,74,14,5806,0.72,Kayamkulam,AC Repair
+Elite AC,3.6,97,25,3962,0.73,Kayamkulam,Electrician
+Expert Hands,3.5,102,47,5393,0.69,Mavelikara,Electrician
+Elite AC,3.8,107,21,4217,0.75,Haripad,Electrician
+Pro Electric,1.7,76,42,5044,0.35,Ambalappuzha,Electrician
+Elite AC,1.0,60,23,3976,0.21,Kayamkulam,Painter
+Quick Service,5.0,10,115,7832,1.00,Kayamkulam,Home Cleaner
+Expert Hands,3.2,97,16,4230,0.63,Ambalappuzha,AC Repair
+Elite AC,1.1,45,36,4238,0.23,Chengannur,Plumber
+Smart Home,1.6,57,30,3978,0.31,Mavelikara,Carpenter
+Pro Electric,4.7,14,100,9470,1.00,Haripad,Electrician
+Smart Home,2.1,48,6,6207,0.43,Mavelikara,Painter
+Quick Service,2.6,110,12,5772,0.52,Alappuzha,AC Repair
+Reliable Co,2.4,80,29,6309,0.48,Chengannur,Electrician
+Fast Repair,2.9,104,5,3086,0.58,Alappuzha,AC Repair
+Quality Work,2.4,42,2,4067,0.47,Alappuzha,Painter
+Elite AC,1.4,94,19,2105,0.28,Ambalappuzha,Home Cleaner
+Elite AC,4.5,28,247,9121,1.00,Haripad,Painter
+Elite AC,1.2,97,29,1333,0.24,Alappuzha,Electrician
+Quick Service,1.4,2,36,4988,0.39,Kayamkulam,Carpenter
+Quality Work,2.7,36,44,7015,0.54,Mavelikara,Painter
+Quality Work,2.3,49,0,6238,0.46,Kayamkulam,Electrician
+Pro Electric,2.2,67,28,4265,0.44,Kayamkulam,Painter
+Pro Electric,4.3,67,56,6731,0.85,Haripad,Carpenter
+Quick Service,3.1,95,29,3343,0.61,Mavelikara,Carpenter
+Trusted Service,4.7,30,224,7383,1.00,Kayamkulam,Carpenter
+Expert Hands,1.7,102,48,3388,0.34,Haripad,AC Repair
+Quality Work,1.7,78,26,2950,0.33,Ambalappuzha,Painter
+Pro Electric,1.6,19,14,5679,0.42,Alappuzha,Home Cleaner
+Best Plumbing,4.1,71,70,5905,0.82,Mavelikara,Plumber
+Trusted Service,2.7,111,24,3406,0.54,Kayamkulam,AC Repair
+Elite AC,2.9,89,6,6926,0.58,Alappuzha,AC Repair
+Smart Home,2.4,69,13,6595,0.48,Haripad,Painter
+Reliable Co,4.3,31,199,4399,0.85,Chengannur,Home Cleaner
+Quick Service,1.8,68,22,3721,0.35,Haripad,Home Cleaner
+Expert Hands,4.4,24,131,8806,0.98,Alappuzha,Carpenter
+Trusted Service,3.1,15,23,4343,0.72,Chengannur,Plumber
+Expert Hands,1.7,27,34,5155,0.43,Alappuzha,Painter
+Smart Home,2.3,101,47,5340,0.47,Mavelikara,Plumber
+Reliable Co,1.5,90,48,5011,0.30,Ambalappuzha,Electrician
+Quick Service,2.1,93,10,5159,0.41,Kayamkulam,Plumber
+Smart Home,2.3,99,29,6045,0.46,Chengannur,Carpenter
+Pro Electric,1.5,11,42,2294,0.39,Ambalappuzha,Home Cleaner
+Quality Work,3.6,17,49,6333,0.82,Ambalappuzha,Carpenter
+Quick Service,3.9,4,47,4618,0.88,Chengannur,Home Cleaner

@@ -1,0 +1,9 @@
+{
+  "weights": {
+    "rating": 20,
+    "response": 40,
+    "volume": 18.80721829070457
+  },
+  "isTrained": true,
+  "trainedAt": "2026-05-02T15:06:12.007Z"
+}

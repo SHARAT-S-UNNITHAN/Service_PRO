@@ -1,13 +1,20 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
+  "description": "Service Marketplace Backend with ML",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "ml:import-csv": "node ml/import-csv-cli.js",
+    "ml:generate-csv": "node ml/generate-csv-training.js",
+    "ml:train": "node ml/train.js"
   },
-  "keywords": [],
+  "keywords": [
+    "ml",
+    "search",
+    "ranking"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
@@ -15,14 +22,17 @@
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
+    "csv-parser": "^3.2.0",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "mime-types": "^3.0.2",
+    "ml-regression": "^6.3.0",
     "multer": "^2.1.1",
     "nodemailer": "^8.0.4",
     "recharts": "^3.8.1",
+    "simple-statistics": "^7.8.9",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {

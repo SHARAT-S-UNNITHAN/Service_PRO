@@ -1,0 +1,10 @@
+{
+  "weights": {
+    "rating": 32,
+    "response": 42,
+    "volume": 26
+  },
+  "trainedAt": "2026-05-02T15:14:22.506Z",
+  "recordsUsed": 500,
+  "source": "csv_direct"
+}

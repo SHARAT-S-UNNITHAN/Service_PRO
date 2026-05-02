@@ -1,0 +1,7 @@
+provider_name,rating,response_time,review_count,amount,success_score,location,profession
+"John's Plumbing",4.8,12,156,5000,1.0,Alappuzha,Plumber
+"Quick Electric",4.5,25,89,3500,0.9,Kayamkulam,Electrician
+"Smart AC Care",3.8,120,23,2000,0.7,Alappuzha,AC Repair
+"Best Painters",4.2,45,67,8000,0.85,Chengannur,Painter
+"24/7 Plumber",4.9,8,234,6500,1.0,Mavelikara,Plumber
+"Slow Service",2.5,480,5,1000,0.3,Haripad,General

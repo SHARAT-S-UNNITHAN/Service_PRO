@@ -8,9 +8,15 @@ const helmet = require('helmet');
 const db = require('./db');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
+const mlService = require('./ml/simple-ml');
+const fs = require('fs');
+const multer = require('multer');
+const CSVTraining = require('./ml/csv-training');
+const DirectCSVTraining = require('./ml/direct-csv-training');
+const directCsvTrainer = new DirectCSVTraining(mlService);
 const providerRoutes = require('./routes/provider');
 const userRoutes = require('./routes/user');
-const completionRoutes = require('./routes/completion'); // ← ADDED for OTP verification
+const completionRoutes = require('./routes/completion');
 const { authMiddleware, requireRole, requireVerifiedProvider } = require('./middleware/auth');
 const { sendOtpToCustomer } = require('./services/emailService');
 
@@ -20,20 +26,196 @@ const PORT = process.env.PORT || 4000;
 // ────────────────────────────────────────────────
 // Middleware
 // ────────────────────────────────────────────────
-app.use(helmet());               // Security headers (XSS, clickjacking, etc.)
+app.use(helmet());
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173'], // your frontend ports
+  origin: ['http://localhost:3000', 'http://localhost:5173'],
   credentials: true
 }));
 app.use(express.json());
 
-// Serve uploaded files with CORS headers (fixes image loading from frontend)
 app.use('/uploads', (req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*"); // dev: allow all
+  res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
   next();
 }, express.static(path.join(__dirname, 'uploads')));
+// ────────────────────────────────────────────────
+// CSV Training Setup for ML
+// ────────────────────────────────────────────────
+
+// Initialize CSV Trainer
+const csvTrainer = new CSVTraining(mlService);
+
+// Configure multer for CSV file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, 'ml/uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `training_${Date.now()}_${file.originalname}`);
+  }
+});
+
+const upload = multer({ 
+  storage: storage, 
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only CSV files are allowed'));
+    }
+  }
+});
+
+// ────────────────────────────────────────────────
+// ML CSV Training Routes (Admin only)
+// ────────────────────────────────────────────────
+
+// Upload CSV file for training
+app.post('/api/ml/upload-csv', authMiddleware, requireRole(['admin']), upload.single('csvfile'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No CSV file uploaded' });
+    }
+    
+    console.log(`[CSV Upload] Processing: ${req.file.filename}`);
+    const result = await csvTrainer.importFromCSV(req.file.path);
+    
+    res.json({
+      success: true,
+      message: `Successfully imported ${result.imported} training records`,
+      file: req.file.filename,
+      records_imported: result.imported
+    });
+  } catch (error) {
+    console.error('[CSV Upload] Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Bulk import from folder
+app.post('/api/ml/bulk-import', authMiddleware, requireRole(['admin']), async (req, res) => {
+  try {
+    const csvFolder = path.join(__dirname, 'ml/csv_data');
+    if (!fs.existsSync(csvFolder)) {
+      return res.status(400).json({ error: 'CSV folder not found. Create: server/ml/csv_data/' });
+    }
+    
+    const results = await csvTrainer.importFromFolder(csvFolder);
+    res.json({
+      success: true,
+      files_processed: results.length,
+      total_records: results.reduce((sum, r) => sum + r.imported, 0),
+      details: results
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get training statistics
+app.get('/api/ml/training-stats', authMiddleware, requireRole(['admin']), async (req, res) => {
+  db.get(`
+    SELECT 
+      COUNT(DISTINCT b.id) as total_bookings,
+      COUNT(DISTINCT r.id) as total_reviews,
+      COUNT(DISTINCT b.provider_id) as unique_providers,
+      MIN(b.created_at) as oldest_data,
+      MAX(b.created_at) as newest_data,
+      printf('%.2f', AVG(r.rating)) as avg_rating
+    FROM bookings b
+    LEFT JOIN reviews r ON r.booking_id = b.id
+  `, [], (err, stats) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({
+      training_data: stats,
+      ml_status: {
+        is_trained: mlService.isTrained || false,
+        weights: mlService.weights || null,
+        training_samples: mlService.trainingData?.length || 0
+      }
+    });
+  });
+});
+
+// Download sample CSV template
+app.get('/api/ml/sample-csv', authMiddleware, requireRole(['admin']), (req, res) => {
+  const sampleCSV = `provider_name,rating,response_time,review_count,amount,success_score,location,profession
+"Sample Provider 1",4.8,12,156,5000,1.0,Alappuzha,Plumber
+"Sample Provider 2",4.5,25,89,3500,0.9,Kayamkulam,Electrician
+"Sample Provider 3",3.8,120,23,2000,0.7,Alappuzha,AC Repair
+"Sample Provider 4",4.2,45,67,8000,0.85,Chengannur,Painter
+"Sample Provider 5",2.5,480,5,1000,0.3,Haripad,General`;
+  
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=sample_training.csv');
+  res.send(sampleCSV);
+});
+
+
+// Public ML status endpoint (no auth required for demo)
+app.get('/api/ml/status', (req, res) => {
+  res.json({
+    ml_enabled: true,
+    ml_version: 'simple-ml',
+    is_trained: mlService.isTrained || false,
+    weights: mlService.weights || null,
+    training_samples: mlService.trainingData?.length || 0
+  });
+});
+
+// Direct CSV Training - NO database insertion!
+app.post('/api/ml/direct-train', authMiddleware, requireRole(['admin']), upload.single('csvfile'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No CSV file uploaded' });
+    }
+    
+    console.log(`[Direct Train] Processing: ${req.file.filename}`);
+    const result = await directCsvTrainer.trainFromCSV(req.file.path);
+    
+    res.json({
+      success: true,
+      message: `ML trained directly from CSV with ${result.records} records`,
+      records_used: result.records,
+      no_database_changes: true
+    });
+  } catch (error) {
+    console.error('[Direct Train] Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get current ML weights with debug info
+app.get('/api/ml/weights', (req, res) => {
+  res.json({
+    weights: mlService.weights,
+    is_trained: mlService.isTrained,
+    source: mlService.trainingSource || (mlService.csvTrainingData ? 'csv_trained' : 'real_data'),
+    csv_records: mlService.csvTrainingData?.length || 0,
+    csv_active: mlService.trainingSource === 'csv',
+    // Debug info
+    debug: {
+      hasCsvData: !!mlService.csvTrainingData,
+      trainingSource: mlService.trainingSource,
+      weightsValue: mlService.weights
+    }
+  });
+});
+
+// Reset ML to use only real data
+app.post('/api/ml/reset', authMiddleware, requireRole(['admin']), async (req, res) => {
+  // Clear CSV-trained weights
+  mlService.csvTrainingData = null;
+  await mlService.train(); // Retrain with real data only
+  res.json({ success: true, message: 'ML reset to use only real database data' });
+});
 
 // ────────────────────────────────────────────────
 // Public routes
@@ -92,14 +274,12 @@ app.get('/providers/:id', (req, res) => {
   });
 });
 
-// ────────────────────────────────────────────────
-// REPLACE the existing app.get("/search/providers", ...) in your index.js
-// ────────────────────────────────────────────────
-
-app.get("/search/providers", (req, res) => {
+// ============================================
+// ROUTE 1: Detailed Search (Homepage form) with ML Scoring
+// ============================================
+app.get("/search/providers", async (req, res) => {
   let { service, location } = req.query;
-
-  service  = service  ? decodeURIComponent(service).trim()  : "";
+  service = service ? decodeURIComponent(service).trim() : "";
   location = location ? decodeURIComponent(location).trim() : "";
 
   let query = `
@@ -114,21 +294,21 @@ app.get("/search/providers", (req, res) => {
       p.profile_photo,
       p.is_verified,
       p.is_active,
+      COALESCE(p.total_earnings, 0) AS total_earnings,
 
       COALESCE(AVG(r.rating), 0) AS average_rating,
       COUNT(DISTINCT r.id) AS review_count,
+      
       COALESCE(AVG(
         CASE 
-          WHEN b.status = 'accepted' 
-          THEN (julianday(b.updated_at) - julianday(b.created_at)) * 24 * 60 
+          WHEN b.responded_at IS NOT NULL
+          THEN (julianday(b.responded_at) - julianday(b.created_at)) * 24 * 60
           ELSE NULL 
         END
-      ), 45) AS avg_response_time,
-
-      GROUP_CONCAT(DISTINCT r.review_text) AS reviews,
+      ), 60) AS avg_response_time,
 
       (
-        SELECT GROUP_CONCAT(DISTINCT profession)
+        SELECT GROUP_CONCAT(profession, ',')
         FROM provider_professions 
         WHERE provider_id = p.id
       ) AS professions
@@ -142,141 +322,76 @@ app.get("/search/providers", (req, res) => {
   const params = [];
 
   if (service) {
-    const fullPhrase = `%${service.toLowerCase()}%`;
     const words = service.toLowerCase().split(/\s+/).filter(Boolean);
-
-    // Strategy:
-    // 1. Try EXACT full phrase match first (e.g. "car service" matches "Car Service")
-    // 2. If multi-word, require ALL words to appear in the SAME profession row (AND logic)
-    //    This prevents "car" matching "Carpenter" when user typed "Car Service"
-
     if (words.length === 1) {
-      // Single word: simple LIKE match on professions
-      query += `
-        AND EXISTS (
-          SELECT 1 FROM provider_professions pp
-          WHERE pp.provider_id = p.id
-            AND LOWER(pp.profession) LIKE ?
-        )
-      `;
-      params.push(fullPhrase);
-
+      query += ` AND EXISTS (SELECT 1 FROM provider_professions pp WHERE pp.provider_id = p.id AND LOWER(pp.profession) LIKE ?)`;
+      params.push(`%${words[0]}%`);
     } else {
-      // Multi-word (e.g. "Car Service", "AC Repair"):
-      // Match providers whose ANY profession contains the FULL phrase
-      // OR whose ANY single profession contains ALL individual words
-      const allWordsCondition = words
-        .map(() => `LOWER(pp.profession) LIKE ?`)
-        .join(" AND ");
-
-      query += `
-        AND EXISTS (
-          SELECT 1 FROM provider_professions pp
-          WHERE pp.provider_id = p.id
-            AND (
-              LOWER(pp.profession) LIKE ?
-              OR (${allWordsCondition})
-            )
-        )
-      `;
-
-      // First param = full phrase, then one param per word (all on same row)
-      params.push(fullPhrase);
-      words.forEach(w => params.push(`%${w}%`));
+      const conditions = words.map(() => `LOWER(pp.profession) LIKE ?`).join(" AND ");
+      query += ` AND EXISTS (SELECT 1 FROM provider_professions pp WHERE pp.provider_id = p.id AND (${conditions}))`;
+      words.forEach(word => params.push(`%${word}%`));
     }
   }
 
   if (location) {
     const loc = `%${location.toLowerCase()}%`;
-    query += `
-      AND (
-        LOWER(p.district) LIKE ? OR
-        LOWER(p.region)   LIKE ? OR
-        LOWER(p.address)  LIKE ?
-      )
-    `;
+    query += ` AND (LOWER(p.district) LIKE ? OR LOWER(p.region) LIKE ? OR LOWER(p.address) LIKE ?)`;
     params.push(loc, loc, loc);
   }
 
-  query += `
-    GROUP BY p.id
-    LIMIT 50
-  `;
+  query += ` GROUP BY p.id LIMIT 50`;
 
-  db.all(query, params, (err, rows) => {
+  db.all(query, params, async (err, rows) => {
     if (err) {
-      console.error("[DETAILED SEARCH] DB error:", err.message);
+      console.error("[SEARCH] DB error:", err.message);
       return res.status(500).json({ error: "Search failed" });
     }
 
-    const results = rows.map(row => {
-      const rating       = parseFloat(row.average_rating)  || 0;
-      const reviewCount  = parseInt(row.review_count)       || 0;
-      const responseTime = parseFloat(row.avg_response_time)|| 45;
-      const reviews      = row.reviews ? row.reviews.split(",").filter(Boolean) : [];
+    const providers = rows.map(row => ({
+      id: row.id,
+      full_name: row.full_name || row.username,
+      average_rating: parseFloat(row.average_rating) || 0,
+      review_count: parseInt(row.review_count) || 0,
+      avg_response_time: parseFloat(row.avg_response_time) || 60,
+      total_earnings: parseFloat(row.total_earnings) || 0,
+      district: row.district,
+      region: row.region,
+      description: row.description,
+      profile_photo_url: row.profile_photo ? `http://localhost:${PORT}${row.profile_photo}` : null,
+      professions: row.professions ? row.professions.split(',').map(p => p.trim()) : []
+    }));
 
-      // ML-style scoring
-      let score = 0;
-      score += Math.pow(rating, 1.3) * 0.45;
-      score += Math.min(reviewCount * 0.12, 1.8);
-      score += Math.max(0, 5 - (responseTime / 15)) * 0.25;
-      score += reviews.length > 0 ? 0.8 : 0;
+    const scoredProviders = await mlService.batchPredict(providers);
 
-      return {
-        ...row,
-        profile_photo_url: row.profile_photo
-          ? `http://localhost:${PORT}${row.profile_photo}`
-          : null,
-        professions: row.professions
-          ? row.professions.split(",").map(p => p.trim()).filter(Boolean)
-          : [],
-        reviews,
-        average_rating: rating,
-        avg_response_time: responseTime,
-        ml_score: parseFloat(score.toFixed(2)),
+    // Add star display for frontend
+    scoredProviders.forEach(provider => {
+      const rating = provider.average_rating || 0;
+      const fullStars = Math.floor(rating);
+      const hasHalfStar = rating % 1 >= 0.5;
+      const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+      
+      provider.star_display = {
+        rating: rating.toFixed(1),
+        full_stars: fullStars,
+        half_star: hasHalfStar,
+        empty_stars: emptyStars,
+        as_emoji: '⭐'.repeat(fullStars) + (hasHalfStar ? '⭐' : '') + '☆'.repeat(emptyStars)
       };
+      
+      // IMPORTANT: Add 'rating' field for frontend compatibility
+      provider.rating = rating;
+      provider.stars = rating;
     });
 
-    results.sort((a, b) => b.ml_score - a.ml_score);
-    res.json(results);
+    scoredProviders.sort((a, b) => b.ml_score - a.ml_score);
+    res.json(scoredProviders);
   });
 });
 
-// ────────────────────────────────────────────────
-// Admin routes (protected)
-// ────────────────────────────────────────────────
-app.use('/admin', adminRoutes);
-
-// ────────────────────────────────────────────────
-// Provider routes (protected)
-// ────────────────────────────────────────────────
-app.use('/provider', providerRoutes);
-
-// ────────────────────────────────────────────────
-// User routes (protected)
-// ────────────────────────────────────────────────
-app.use('/user', userRoutes);
-
-// ────────────────────────────────────────────────
-// OTP Completion routes (protected) - ADDED for OTP verification
-// ────────────────────────────────────────────────
-app.use('/api', completionRoutes);
-
-// ────────────────────────────────────────────────
-// Public Search Routes
-// ────────────────────────────────────────────────
-
-// Universal search (navbar) - single q param
-// ────────────────────────────────────────────────
-// Universal Search (navbar) - with Smart Scoring
-// ────────────────────────────────────────────────
-// ────────────────────────────────────────────────
-// Universal Search (navbar) - Smart Search + Fixed Professions
-// ────────────────────────────────────────────────
-// ────────────────────────────────────────────────
-// Universal Search with Basic ML-style Scoring
-// ────────────────────────────────────────────────
-app.get('/api/search', (req, res) => {
+// ============================================
+// ROUTE 2: Universal Search (Navbar) with ML Scoring
+// ============================================
+app.get('/api/search', async (req, res) => {
   const { q } = req.query;
 
   if (!q || q.trim().length < 2) {
@@ -297,20 +412,21 @@ app.get('/api/search', (req, res) => {
       p.profile_photo,
       p.is_verified,
       p.is_active,
+      COALESCE(p.total_earnings, 0) AS total_earnings,
 
       COALESCE(AVG(r.rating), 0) AS average_rating,
       COUNT(DISTINCT r.id) AS review_count,
+      
       COALESCE(AVG(
         CASE 
-          WHEN b.status = 'accepted' 
-          THEN (julianday(b.updated_at) - julianday(b.created_at)) * 24 * 60 
+          WHEN b.responded_at IS NOT NULL
+          THEN (julianday(b.responded_at) - julianday(b.created_at)) * 24 * 60
           ELSE NULL 
         END
-      ), 45) AS avg_response_time,
+      ), 60) AS avg_response_time,
 
-      GROUP_CONCAT(DISTINCT r.review_text) AS reviews,
       (
-        SELECT GROUP_CONCAT(DISTINCT profession)
+        SELECT GROUP_CONCAT(profession, ',')
         FROM provider_professions 
         WHERE provider_id = p.id
       ) AS professions
@@ -336,197 +452,77 @@ app.get('/api/search', (req, res) => {
     LIMIT 50
   `;
 
-  db.all(
-    query,
-    [searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm],
-    (err, rows) => {
-      if (err) {
-        console.error("[UNIVERSAL SEARCH] DB error:", err.message);
-        return res.status(500).json({ error: "Search failed" });
-      }
-
-      const results = rows.map(row => {
-        const rating = parseFloat(row.average_rating) || 0;
-        const reviewCount = parseInt(row.review_count) || 0;
-        const responseTime = parseFloat(row.avg_response_time) || 45;
-        const reviews = row.reviews ? row.reviews.split(',').filter(Boolean) : [];
-
-        // === Basic ML-style Scoring ===
-        let score = 0;
-
-        // 1. Rating with non-linear boost (high ratings get extra points)
-        score += Math.pow(rating, 1.3) * 0.45;
-
-        // 2. Review count bonus (more reviews = more trustworthy, like real ML models)
-        score += Math.min(reviewCount * 0.12, 1.8);
-
-        // 3. Response time penalty (faster = better)
-        const responseScore = Math.max(0, 5 - (responseTime / 15));
-        score += responseScore * 0.25;
-
-        // 4. Simple sentiment boost
-        let sentiment = 0;
-        if (reviews.length > 0) {
-          const positive = ["good", "great", "excellent", "fast", "quick", "professional", "helpful", "amazing"];
-          reviews.forEach(review => {
-            const text = review.toLowerCase();
-            positive.forEach(word => {
-              if (text.includes(word)) sentiment += 1.2;
-            });
-          });
-          sentiment = Math.min(sentiment / reviews.length, 4);
-        }
-        score += sentiment * 0.18;
-
-        return {
-          ...row,
-          profile_photo_url: row.profile_photo ? `http://localhost:${PORT}${row.profile_photo}` : null,
-          professions: row.professions 
-            ? row.professions.split(',').map(p => p.trim()).filter(Boolean) 
-            : [],
-          reviews: reviews,
-          average_rating: rating,
-          avg_response_time: responseTime,
-          ml_score: parseFloat(score.toFixed(2))   // ← Final "ML" score
-        };
-      });
-
-      // Sort by ML score (highest first)
-      results.sort((a, b) => b.ml_score - a.ml_score);
-
-      res.json(results);
-    }
-  );
-});
-
-// ────────────────────────────────────────────────
-// Detailed Search (home page form) - with Smart ML Scoring + Fixed Join
-// ────────────────────────────────────────────────
-app.get("/search/providers", (req, res) => {
-  let { service, location } = req.query;
-
-  service = service ? decodeURIComponent(service).trim() : "";
-  location = location ? decodeURIComponent(location).trim() : "";
-
-  let query = `
-    SELECT 
-      p.id,
-      p.username,
-      p.full_name,
-      p.district,
-      p.region,
-      p.address,
-      p.description,
-      p.profile_photo,
-      p.is_verified,
-      p.is_active,
-
-      COALESCE(AVG(r.rating), 0) AS average_rating,
-      COUNT(DISTINCT r.id) AS review_count,
-      COALESCE(AVG(
-        CASE 
-          WHEN b.status = 'accepted' 
-          THEN (julianday(b.updated_at) - julianday(b.created_at)) * 24 * 60 
-          ELSE NULL 
-        END
-      ), 45) AS avg_response_time,
-
-      GROUP_CONCAT(DISTINCT r.review_text) AS reviews,
-
-      -- Fixed professions using subquery (safest way)
-      (
-        SELECT GROUP_CONCAT(DISTINCT profession)
-        FROM provider_professions 
-        WHERE provider_id = p.id
-      ) AS professions
-
-    FROM providers p
-    LEFT JOIN reviews r ON r.provider_id = p.id
-    LEFT JOIN bookings b ON b.provider_id = p.id
-    WHERE p.is_verified = 1 AND p.is_active = 1
-  `;
-
-  const params = [];
-
-  if (service) {
-    const words = service.toLowerCase().split(/\s+/).filter(Boolean);
-
-    if (words.length > 0) {
-      const conditions = words.map(() => `
-        EXISTS (
-          SELECT 1 FROM provider_professions pp 
-          WHERE pp.provider_id = p.id AND LOWER(pp.profession) LIKE ?
-        )
-      `).join(" OR ");
-
-      query += ` AND (${conditions}) `;
-
-      words.forEach(word => params.push(`%${word}%`));
-    }
-  }
-
-  if (location) {
-    const loc = `%${location.toLowerCase()}%`;
-    query += `
-      AND (
-        LOWER(p.district) LIKE ? OR
-        LOWER(p.region) LIKE ? OR
-        LOWER(p.address) LIKE ?
-      )
-    `;
-    params.push(loc, loc, loc);
-  }
-
-  query += `
-    GROUP BY p.id
-    ORDER BY average_rating DESC, avg_response_time ASC
-    LIMIT 50
-  `;
-
-  db.all(query, params, (err, rows) => {
+  db.all(query, [searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm], async (err, rows) => {
     if (err) {
-      console.error("[DETAILED SEARCH] DB error:", err.message);
+      console.error("[UNIVERSAL SEARCH] DB error:", err.message);
       return res.status(500).json({ error: "Search failed" });
     }
 
-    const results = rows.map(row => {
-      const rating = parseFloat(row.average_rating) || 0;
-      const reviewCount = parseInt(row.review_count) || 0;
-      const responseTime = parseFloat(row.avg_response_time) || 45;
-      const reviews = row.reviews ? row.reviews.split(',').filter(Boolean) : [];
+    const providers = rows.map(row => ({
+      id: row.id,
+      full_name: row.full_name || row.username,
+      average_rating: parseFloat(row.average_rating) || 0,
+      review_count: parseInt(row.review_count) || 0,
+      avg_response_time: parseFloat(row.avg_response_time) || 60,
+      total_earnings: parseFloat(row.total_earnings) || 0,
+      district: row.district,
+      region: row.region,
+      description: row.description,
+      profile_photo_url: row.profile_photo ? `http://localhost:${PORT}${row.profile_photo}` : null,
+      professions: row.professions ? row.professions.split(',').map(p => p.trim()) : []
+    }));
 
-      // Basic ML-style Scoring
-      let score = 0;
-      score += Math.pow(rating, 1.3) * 0.45;                    // Rating boost
-      score += Math.min(reviewCount * 0.12, 1.8);               // More reviews = better
-      score += Math.max(0, 5 - (responseTime / 15)) * 0.25;     // Faster response = better
-      score += (reviews.length > 0 ? 0.8 : 0);                  // Has reviews bonus
+    const scoredProviders = await mlService.batchPredict(providers);
 
-      return {
-        ...row,
-        profile_photo_url: row.profile_photo ? `http://localhost:${PORT}${row.profile_photo}` : null,
-        professions: row.professions 
-          ? row.professions.split(',').map(p => p.trim()).filter(Boolean) 
-          : [],
-        reviews: reviews,
-        average_rating: rating,
-        avg_response_time: responseTime,
-        ml_score: parseFloat(score.toFixed(2))
+    // Add star display for frontend
+    scoredProviders.forEach(provider => {
+      const rating = provider.average_rating || 0;
+      const fullStars = Math.floor(rating);
+      const hasHalfStar = rating % 1 >= 0.5;
+      const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+      
+      provider.star_display = {
+        rating: rating.toFixed(1),
+        full_stars: fullStars,
+        half_star: hasHalfStar,
+        empty_stars: emptyStars,
+        as_emoji: '⭐'.repeat(fullStars) + (hasHalfStar ? '⭐' : '') + '☆'.repeat(emptyStars)
       };
+      
+      // IMPORTANT: Add 'rating' field for frontend compatibility
+      provider.rating = rating;
+      provider.stars = rating;
     });
 
-    // Sort by ml_score
-    results.sort((a, b) => b.ml_score - a.ml_score);
-    res.json(results);
+    scoredProviders.sort((a, b) => b.ml_score - a.ml_score);
+    res.json(scoredProviders);
   });
 });
 
 // ────────────────────────────────────────────────
-// Analytics & Completion Flow Routes (NEW)
+// Admin routes (protected)
+// ────────────────────────────────────────────────
+app.use('/admin', adminRoutes);
+
+// ────────────────────────────────────────────────
+// Provider routes (protected)
+// ────────────────────────────────────────────────
+app.use('/provider', providerRoutes);
+
+// ────────────────────────────────────────────────
+// User routes (protected)
+// ────────────────────────────────────────────────
+app.use('/user', userRoutes);
+
+// ────────────────────────────────────────────────
+// OTP Completion routes (protected)
+// ────────────────────────────────────────────────
+app.use('/api', completionRoutes);
+
+// ────────────────────────────────────────────────
+// Analytics Routes
 // ────────────────────────────────────────────────
 
-// CUSTOMER: Confirm work done + enter cash amount
-// POST /api/bookings/:id/confirm-work
 app.post('/api/bookings/:id/confirm-work', authMiddleware, requireRole(['user']), (req, res) => {
   const bookingId = parseInt(req.params.id);
   const { cash_amount_paid } = req.body;
@@ -536,13 +532,12 @@ app.post('/api/bookings/:id/confirm-work', authMiddleware, requireRole(['user'])
     return res.status(400).json({ error: 'Please enter a valid amount paid' });
   }
 
-  // Verify booking belongs to this user and is accepted
   db.get(
     `SELECT b.id, b.status, b.customer_confirmed, b.user_id
      FROM bookings b WHERE b.id = ? AND b.user_id = ?`,
     [bookingId, req.user.id],
     (err, booking) => {
-      if (err)      return res.status(500).json({ error: 'Database error' });
+      if (err) return res.status(500).json({ error: 'Database error' });
       if (!booking) return res.status(404).json({ error: 'Booking not found' });
       if (booking.status !== 'accepted') {
         return res.status(400).json({ error: 'Booking must be accepted before confirming completion' });
@@ -566,8 +561,6 @@ app.post('/api/bookings/:id/confirm-work', authMiddleware, requireRole(['user'])
   );
 });
 
-// ANALYTICS: Provider earnings trend (last 30 days) - FIXED VERSION
-// GET /api/provider/earnings/trend
 app.get('/api/provider/earnings/trend', authMiddleware, requireRole(['provider']), (req, res) => {
   db.get('SELECT id FROM providers WHERE user_id = ?', [req.user.id], (err, provider) => {
     if (err || !provider) return res.status(404).json({ error: 'Provider not found' });
@@ -591,21 +584,17 @@ app.get('/api/provider/earnings/trend', authMiddleware, requireRole(['provider']
   });
 });
 
-// ANALYTICS: Provider weekly performance summary - FIXED VERSION
-// GET /api/provider/performance/weekly
 app.get('/api/provider/performance/weekly', authMiddleware, requireRole(['provider']), (req, res) => {
   db.get('SELECT id FROM providers WHERE user_id = ?', [req.user.id], (err, provider) => {
     if (err || !provider) return res.status(404).json({ error: 'Provider not found' });
 
     Promise.all([
-      // This week
       new Promise((rs, rj) => db.get(`
         SELECT COUNT(*) as bookings, SUM(COALESCE(cash_amount_paid, 0)) as earnings
         FROM bookings
         WHERE provider_id = ? AND status = 'completed'
           AND completed_at >= DATE('now', 'weekday 0', '-7 days')
       `, [provider.id], (e, r) => e ? rj(e) : rs(r))),
-      // Last week
       new Promise((rs, rj) => db.get(`
         SELECT COUNT(*) as bookings, SUM(COALESCE(cash_amount_paid, 0)) as earnings
         FROM bookings
@@ -613,7 +602,6 @@ app.get('/api/provider/performance/weekly', authMiddleware, requireRole(['provid
           AND completed_at >= DATE('now', 'weekday 0', '-14 days')
           AND completed_at < DATE('now', 'weekday 0', '-7 days')
       `, [provider.id], (e, r) => e ? rj(e) : rs(r))),
-      // All time
       new Promise((rs, rj) => db.get(`
         SELECT COUNT(*) as total_completed,
                SUM(COALESCE(cash_amount_paid, 0)) as total_earnings,
@@ -621,7 +609,6 @@ app.get('/api/provider/performance/weekly', authMiddleware, requireRole(['provid
         FROM bookings
         WHERE provider_id = ? AND status = 'completed'
       `, [provider.id], (e, r) => e ? rj(e) : rs(r))),
-      // Earnings by profession (from booking.profession column - correct!)
       new Promise((rs, rj) => db.all(`
         SELECT
           COALESCE(profession, 'Other') as profession,
@@ -641,8 +628,6 @@ app.get('/api/provider/performance/weekly', authMiddleware, requireRole(['provid
   });
 });
 
-// ANALYTICS: Customer spending trend (last 6 months)
-// GET /api/customer/spending/trend
 app.get('/api/customer/spending/trend', authMiddleware, requireRole(['user']), (req, res) => {
   db.all(
     `SELECT
@@ -663,8 +648,6 @@ app.get('/api/customer/spending/trend', authMiddleware, requireRole(['user']), (
   );
 });
 
-// ANALYTICS: Customer favorite providers
-// GET /api/customer/favorite-providers
 app.get('/api/customer/favorite-providers', authMiddleware, requireRole(['user']), (req, res) => {
   db.all(
     `SELECT
@@ -685,8 +668,6 @@ app.get('/api/customer/favorite-providers', authMiddleware, requireRole(['user']
   );
 });
 
-// ANALYTICS: Admin platform overview
-// GET /api/admin/revenue/overview
 app.get('/api/admin/revenue/overview', authMiddleware, requireRole(['admin']), (req, res) => {
   const queries = {
     daily: `SELECT DATE(completed_at) as period, SUM(COALESCE(cash_amount_paid,0)) as revenue, COUNT(*) as bookings
@@ -710,18 +691,12 @@ app.get('/api/admin/revenue/overview', authMiddleware, requireRole(['admin']), (
   }).catch(() => res.status(500).json({ error: 'Database error' }));
 });
 
-// ═══════════════════════════════════════════════════════════════
-// ADD ALL THESE to server/index.js  (after existing routes)
-// These power the new Admin Analytics Panel
-// ═══════════════════════════════════════════════════════════════
-
-// ── Platform Overview ──────────────────────────────────────────
 app.get('/api/admin/overview', authMiddleware, requireRole(['admin']), (req, res) => {
   const queries = {
     totals: `
       SELECT
         (SELECT COUNT(*) FROM users WHERE role='user') as total_users,
-        (SELECT COUNT(*) FROM users WHERE role='provider') as total_providers,
+        (SELECT COUNT(*) FROM providers) as total_providers,
         (SELECT COUNT(*) FROM providers WHERE is_verified=1) as verified_providers,
         (SELECT COUNT(*) FROM providers WHERE is_verified=0) as pending_providers,
         (SELECT COUNT(*) FROM bookings) as total_bookings,
@@ -756,7 +731,6 @@ app.get('/api/admin/overview', authMiddleware, requireRole(['admin']), (req, res
     .catch(()=>res.status(500).json({error:'Database error'}));
 });
 
-// ── Provider Leaderboard - FIXED VERSION ───────────────────────────────────────
 app.get('/api/admin/leaderboard', authMiddleware, requireRole(['admin']), (req, res) => {
   db.all(`
     SELECT
@@ -786,10 +760,8 @@ app.get('/api/admin/leaderboard', authMiddleware, requireRole(['admin']), (req, 
   });
 });
 
-// ── Activity Feed ──────────────────────────────────────────────
 app.get('/api/admin/activity', authMiddleware, requireRole(['admin']), (req, res) => {
   const { type = 'all', limit = 30 } = req.query;
-  const events = [];
   const queries = [];
 
   if (type === 'all' || type === 'booking') {
@@ -843,7 +815,6 @@ app.get('/api/admin/activity', authMiddleware, requireRole(['admin']), (req, res
     .catch(() => res.status(500).json({ error: 'Database error' }));
 });
 
-// ── Inactive Providers ─────────────────────────────────────────
 app.get('/api/admin/inactive-providers', authMiddleware, requireRole(['admin']), (req, res) => {
   db.all(`
     SELECT
@@ -864,7 +835,6 @@ app.get('/api/admin/inactive-providers', authMiddleware, requireRole(['admin']),
     LIMIT 50
   `, [], (err, rows) => {
     if (err) return res.status(500).json({ error: 'Database error' });
-    // Add reason label
     const result = (rows||[]).map(p => ({
       ...p,
       reason: !p.last_booking_date ? 'Just joined / No bookings'
@@ -876,7 +846,6 @@ app.get('/api/admin/inactive-providers', authMiddleware, requireRole(['admin']),
   });
 });
 
-// ── Duplicate Booking Detector ─────────────────────────────────
 app.get('/api/admin/duplicate-bookings', authMiddleware, requireRole(['admin']), (req, res) => {
   db.all(`
     SELECT
@@ -901,7 +870,6 @@ app.get('/api/admin/duplicate-bookings', authMiddleware, requireRole(['admin']),
   });
 });
 
-// ── Provider of the Week ───────────────────────────────────────
 app.get('/api/admin/provider-of-week', authMiddleware, requireRole(['admin']), (req, res) => {
   db.all(`
     SELECT
@@ -926,10 +894,8 @@ app.get('/api/admin/provider-of-week', authMiddleware, requireRole(['admin']), (
   });
 });
 
-// ── User Spending Analytics - FIXED VERSION ────────────────────────────────────
 app.get('/api/admin/user-spending', authMiddleware, requireRole(['admin']), (req, res) => {
   Promise.all([
-    // Top spenders
     new Promise((rs, rj) => db.all(`
       SELECT c.full_name, c.id,
              COUNT(b.id) as bookings,
@@ -941,9 +907,6 @@ app.get('/api/admin/user-spending', authMiddleware, requireRole(['admin']), (req
       ORDER BY total_spent DESC
       LIMIT 10
     `, [], (e, r) => e ? rj(e) : rs(r))),
-
-    // FIXED: use b.profession (stored on booking) instead of
-    // joining provider_professions which multiplied amounts
     new Promise((rs, rj) => db.all(`
       SELECT
         COALESCE(b.profession, 'Other') as profession,
@@ -961,8 +924,6 @@ app.get('/api/admin/user-spending', authMiddleware, requireRole(['admin']), (req
   .catch(() => res.status(500).json({ error: 'Database error' }));
 });
 
-// ANALYTICS: Admin top earning providers
-// GET /api/admin/providers/top-earners
 app.get('/api/admin/providers/top-earners', authMiddleware, requireRole(['admin']), (req, res) => {
   db.all(
     `SELECT
