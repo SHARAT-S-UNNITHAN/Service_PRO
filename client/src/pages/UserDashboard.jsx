@@ -1,10 +1,12 @@
-﻿// src/pages/UserDashboard.jsx
+// src/pages/UserDashboard.jsx
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import UserSidebar   from "../components/user/UserSidebar";
-import ProfileInfo   from "../components/user/ProfileInfo";
-import MyBookings    from "../components/user/MyBookings";
+import UserSidebar      from "../components/user/UserSidebar";
+import ProfileInfo      from "../components/user/ProfileInfo";
+import MyBookings       from "../components/user/MyBookings";
 import OtpNotifications from "../components/user/OtpNotifications";
+import UserAnalytics    from "../components/user/UserAnalytics";
+import AnnouncementBanner from "../components/shared/AnnouncementBanner";
 
 const API = "http://localhost:4000";
 
@@ -13,14 +15,14 @@ export default function UserDashboard() {
 
   const [activeSection, setActiveSection] = useState("profile");
   const [otpBadgeCount, setOtpBadgeCount] = useState(0);
-  const [profile, setProfile] = useState(null);
-  const [profileLoad, setProfileLoad] = useState(true);
-  const [editMode, setEditMode] = useState(false);
-  const [formData, setFormData] = useState({});
-  const [saveLoading, setSaveLoading] = useState(false);
-  const [saveError, setSaveError] = useState("");
-  const [bookings, setBookings] = useState([]);
-  const [bookingsLoad, setBookingsLoad] = useState(true);
+  const [profile,       setProfile]       = useState(null);
+  const [profileLoad,   setProfileLoad]   = useState(true);
+  const [editMode,      setEditMode]      = useState(false);
+  const [formData,      setFormData]      = useState({});
+  const [saveLoading,   setSaveLoading]   = useState(false);
+  const [saveError,     setSaveError]     = useState("");
+  const [bookings,      setBookings]      = useState([]);
+  const [bookingsLoad,  setBookingsLoad]  = useState(true);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -81,12 +83,14 @@ export default function UserDashboard() {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  // ── Mobile bottom nav ──────────────────────────────────────
   const MobileNav = () => (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 flex">
       {[
-        { key: "profile",  label: "Profile",    emoji: "👤" },
-        { key: "bookings", label: "Bookings",   emoji: "📋" },
-        { key: "otp",      label: "OTP",        emoji: "🔑" },
+        { key: "profile",   label: "Profile",   emoji: "👤" },
+        { key: "bookings",  label: "Bookings",  emoji: "📋" },
+        { key: "analytics", label: "Analytics", emoji: "📊" },
+        { key: "otp",       label: "OTP",       emoji: "🔑" },
       ].map(({ key, label, emoji }) => (
         <button
           key={key}
@@ -109,6 +113,8 @@ export default function UserDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
+
+      {/* Sidebar */}
       <UserSidebar
         activeSection={activeSection}
         setActiveSection={setActiveSection}
@@ -116,8 +122,12 @@ export default function UserDashboard() {
         otpCount={otpBadgeCount}
       />
 
+      {/* Main content */}
       <div className="flex-1 overflow-auto pb-20 md:pb-0">
+        <AnnouncementBanner />
         <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8">
+
+          {/* ── Profile ── */}
           {activeSection === "profile" && (
             profileLoad ? (
               <div className="flex items-center justify-center py-24">
@@ -138,22 +148,34 @@ export default function UserDashboard() {
             )
           )}
 
+          {/* ── Bookings ── */}
           {activeSection === "bookings" && (
             bookingsLoad ? (
               <div className="flex items-center justify-center py-24">
                 <div className="w-8 h-8 border-2 border-gray-200 border-t-indigo-600 rounded-full animate-spin" />
               </div>
             ) : (
-              <MyBookings bookings={bookings} token={token} onRefresh={fetchBookings} />
+              <MyBookings
+                bookings={bookings}
+                token={token}
+                onRefresh={fetchBookings}
+              />
             )
           )}
 
+          {/* ── Analytics ── */}
+          {activeSection === "analytics" && (
+            <UserAnalytics token={token} />
+          )}
+
+          {/* ── OTP ── */}
           {activeSection === "otp" && (
             <OtpNotifications
               token={token}
               onActiveCountChange={setOtpBadgeCount}
             />
           )}
+
         </div>
       </div>
 

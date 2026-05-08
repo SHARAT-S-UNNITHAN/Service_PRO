@@ -4,8 +4,10 @@ import axios from "axios";
 import {
   Users, Clock, ShieldCheck, UserX,
   RefreshCw, BookOpen, IndianRupee, AlertTriangle, BarChart2,
-  UserCheck,
+  UserCheck, X
 } from "lucide-react";
+import ConfirmationModal from "../shared/ConfirmationModal";
+import Toast from "../shared/Toast";
 
 const API = "http://localhost:4000";
 
@@ -14,6 +16,10 @@ export default function DashboardSection({ onSectionChange }) {
   const [extraStats,    setExtraStats]    = useState(null);
   const [recentPending, setRecentPending] = useState([]);
   const [loading,       setLoading]       = useState(true);
+
+  // New UI State
+  const [modal, setModal] = useState({ isOpen: false, id: null, type: "success", title: "", message: "", action: null });
+  const [toast, setToast] = useState({ isVisible: false, message: "", type: "success" });
 
   useEffect(() => { fetchDashboardData(); }, []);
 
@@ -46,22 +52,50 @@ export default function DashboardSection({ onSectionChange }) {
     }
   };
 
-  const handleApprove = async (id) => {
-    if (!window.confirm("Approve this provider?")) return;
-    try {
-      const token = localStorage.getItem("token");
-      await axios.patch(`${API}/admin/providers/${id}/verify`, { is_verified: true }, { headers: { Authorization: `Bearer ${token}` } });
-      alert("✅ Approved!"); fetchDashboardData();
-    } catch (err) { alert(err.response?.data?.error || "Failed"); }
+  const handleApprove = (id) => {
+    setModal({
+      isOpen: true,
+      id,
+      type: "success",
+      title: "Approve Provider",
+      message: "Are you sure you want to approve this provider? They will be able to start accepting service bookings immediately.",
+      confirmText: "Approve Now",
+      action: async () => {
+        try {
+          const token = localStorage.getItem("token");
+          await axios.patch(`${API}/admin/providers/${id}/verify`, { is_verified: true }, { headers: { Authorization: `Bearer ${token}` } });
+          setToast({ isVisible: true, message: "Provider approved successfully!", type: "success" });
+          fetchDashboardData();
+        } catch (err) {
+          setToast({ isVisible: true, message: "Failed to approve provider", type: "error" });
+        } finally {
+          setModal({ isOpen: false, id: null });
+        }
+      }
+    });
   };
 
-  const handleReject = async (id) => {
-    if (!window.confirm("Reject this provider?")) return;
-    try {
-      const token = localStorage.getItem("token");
-      await axios.patch(`${API}/admin/providers/${id}/verify`, { is_verified: false }, { headers: { Authorization: `Bearer ${token}` } });
-      alert("✅ Rejected!"); fetchDashboardData();
-    } catch (err) { alert(err.response?.data?.error || "Failed"); }
+  const handleReject = (id) => {
+    setModal({
+      isOpen: true,
+      id,
+      type: "danger",
+      title: "Reject Provider",
+      message: "Are you sure you want to reject this application? This provider will not be able to offer services on the platform.",
+      confirmText: "Reject Now",
+      action: async () => {
+        try {
+          const token = localStorage.getItem("token");
+          await axios.patch(`${API}/admin/providers/${id}/verify`, { is_verified: false }, { headers: { Authorization: `Bearer ${token}` } });
+          setToast({ isVisible: true, message: "Provider application rejected", type: "info" });
+          fetchDashboardData();
+        } catch (err) {
+          setToast({ isVisible: true, message: "Failed to reject provider", type: "error" });
+        } finally {
+          setModal({ isOpen: false, id: null });
+        }
+      }
+    });
   };
 
   if (loading) return (
@@ -72,6 +106,23 @@ export default function DashboardSection({ onSectionChange }) {
 
   return (
     <div className="space-y-6 pb-24 md:pb-0">
+      <ConfirmationModal 
+        isOpen={modal.isOpen}
+        onClose={() => setModal({ ...modal, isOpen: false })}
+        onConfirm={modal.action}
+        title={modal.title}
+        message={modal.message}
+        confirmText={modal.confirmText}
+        type={modal.type}
+      />
+
+      <Toast 
+        isVisible={toast.isVisible}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast(prev => ({ ...toast, isVisible: false }))}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

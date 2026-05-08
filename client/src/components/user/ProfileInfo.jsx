@@ -71,7 +71,17 @@ export default function ProfileInfo({
 
             <div>
               <label className="block text-sm font-medium text-gray-500 mb-2">Email Address</label>
-              <p className="text-xl font-medium text-gray-900">{profile?.email}</p>
+              {editMode ? (
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email || ""}
+                  onChange={onInputChange}
+                  className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:border-indigo-600 text-lg"
+                />
+              ) : (
+                <p className="text-xl font-medium text-gray-900">{profile?.email}</p>
+              )}
             </div>
 
             <div>

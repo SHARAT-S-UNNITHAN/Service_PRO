@@ -1,8 +1,13 @@
-// src/components/admin/ProvidersSection.jsx
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { Search, Filter, Trash2, RefreshCw, MapPin } from "lucide-react";
+import { 
+  Search, Filter, Trash2, RefreshCw, MapPin, 
+  FileText, Edit3, X, Save, Mail, User, Phone 
+} from "lucide-react";
+import { generatePDFReport } from "../../utils/pdfGenerator";
+import ConfirmationModal from "../shared/ConfirmationModal";
+import Toast from "../shared/Toast";
 
 const API = "http://localhost:4000";
 
@@ -21,7 +26,13 @@ export default function ProvidersSection() {
   const [searchTerm, setSearchTerm]             = useState("");
   const [filterStatus, setFilterStatus]         = useState("all");
   const [filterDistrict, setFilterDistrict]     = useState("all");
+  const [editingProvider, setEditingProvider]   = useState(null);
+  const [editForm, setEditForm]                 = useState({ full_name: "", email: "", phone: "" });
   const navigate = useNavigate();
+
+  // New UI State
+  const [modal, setModal] = useState({ isOpen: false, type: "danger", title: "", message: "", action: null, payload: null });
+  const [toast, setToast] = useState({ isVisible: false, message: "", type: "success" });
 
   useEffect(() => { fetchProviders(); }, []);
 
@@ -76,41 +87,132 @@ export default function ProvidersSection() {
   }, [providers, searchTerm, filterStatus, filterDistrict]);
 
   const handleAction = async (providerId, action, payload = {}) => {
-    const confirmMsg = {
-      approve:      "Approve this provider?",
-      reject:       "Reject this provider?",
-      toggleActive: "Change this provider's status?",
-      delete:       "PERMANENTLY DELETE this provider? (Cannot be undone)",
+    const config = {
+      approve: {
+        title: "Approve Provider",
+        message: "Are you sure you want to approve this provider? They will be able to start accepting bookings.",
+        type: "success",
+        confirmText: "Approve Now"
+      },
+      reject: {
+        title: "Reject Provider",
+        message: "This will reject the provider application. Are you sure?",
+        type: "danger",
+        confirmText: "Reject Provider"
+      },
+      toggleActive: {
+        title: payload.is_active === 1 ? "Enable Provider" : "Disable Provider",
+        message: `Are you sure you want to ${payload.is_active === 1 ? "enable" : "disable"} this provider's account?`,
+        type: payload.is_active === 1 ? "info" : "warning",
+        confirmText: payload.is_active === 1 ? "Enable Now" : "Disable Now"
+      },
+      delete: {
+        title: "Delete Provider Account",
+        message: "PERMANENTLY DELETE this provider? This action is irreversible and will remove all associated data.",
+        type: "danger",
+        confirmText: "Delete Permanently"
+      }
     }[action];
-    if (!window.confirm(confirmMsg)) return;
 
-    setActionLoading((prev) => ({ ...prev, [providerId]: action }));
+    setModal({
+      isOpen: true,
+      ...config,
+      action: async () => {
+        setActionLoading((prev) => ({ ...prev, [providerId]: action }));
+        try {
+          const token = localStorage.getItem("token");
+          if (action === "approve" || action === "reject") {
+            await axios.patch(
+              `${API}/admin/providers/${providerId}/verify`,
+              { is_verified: action === "approve" },
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+          } else if (action === "toggleActive") {
+            await axios.patch(
+              `${API}/admin/providers/${providerId}/toggle-active`,
+              payload,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+          } else if (action === "delete") {
+            await axios.delete(`${API}/admin/providers/${providerId}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+          }
+          await fetchProviders();
+          setToast({ isVisible: true, message: `Action successful!`, type: "success" });
+        } catch (err) {
+          setToast({ isVisible: true, message: err.response?.data?.error || `Failed to ${action}`, type: "error" });
+        } finally {
+          setActionLoading((prev) => ({ ...prev, [providerId]: null }));
+          setModal(prev => ({ ...prev, isOpen: false }));
+        }
+      }
+    });
+  };
+
+  const handleUpdateProvider = async (e) => {
+    e.preventDefault();
+    if (!editingProvider) return;
+
+    setActionLoading((prev) => ({ ...prev, [editingProvider.id]: "update" }));
     try {
       const token = localStorage.getItem("token");
-      if (action === "approve" || action === "reject") {
-        await axios.patch(
-          `${API}/admin/providers/${providerId}/verify`,
-          { is_verified: action === "approve" },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-      } else if (action === "toggleActive") {
-        await axios.patch(
-          `${API}/admin/providers/${providerId}/toggle-active`,
-          payload,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-      } else if (action === "delete") {
-        await axios.delete(`${API}/admin/providers/${providerId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-      }
+      await axios.patch(
+        `${API}/admin/providers/${editingProvider.id}`,
+        editForm,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setEditingProvider(null);
       await fetchProviders();
-      alert(`✅ ${action.charAt(0).toUpperCase() + action.slice(1)} successful!`);
+      setToast({ isVisible: true, message: "Provider updated successfully!", type: "success" });
     } catch (err) {
-      alert(err.response?.data?.error || `Failed to ${action}`);
+      setToast({ isVisible: true, message: err.response?.data?.error || "Failed to update provider", type: "error" });
     } finally {
-      setActionLoading((prev) => ({ ...prev, [providerId]: null }));
+      setActionLoading((prev) => ({ ...prev, [editingProvider.id]: null }));
     }
+  };
+
+  const openEditModal = (p) => {
+    setEditingProvider(p);
+    setEditForm({
+      full_name: p.full_name || p.username || "",
+      email: p.email || "",
+      phone: p.phone || ""
+    });
+  };
+
+  const handleExportPDF = () => {
+    const columns = [
+      { header: "Name", dataKey: "full_name" },
+      { header: "Email", dataKey: "email" },
+      { header: "Phone", dataKey: "phone" },
+      { header: "District", dataKey: "district" },
+      { header: "Region", dataKey: "region" },
+      { header: "Status", dataKey: "status" },
+      { header: "Verified", dataKey: "is_verified" }
+    ];
+
+    const data = filteredProviders.map(p => ({
+      full_name: p.full_name || p.username,
+      email: p.email,
+      phone: p.phone,
+      district: p.district,
+      region: p.region,
+      status: p.is_active === 1 ? "Active" : "Disabled",
+      is_verified: p.is_verified === 1 ? "Yes" : p.is_verified === -1 ? "Rejected" : "Pending"
+    }));
+
+    generatePDFReport({
+      title: "Service Providers Directory",
+      columns: columns,
+      data: data,
+      filename: "providers_report",
+      stats: {
+        "Total Providers": providers.length,
+        "Filtered Results": filteredProviders.length,
+        "Verified": providers.filter(p => p.is_verified === 1).length
+      }
+    });
   };
 
   if (loading) return (
@@ -197,9 +299,18 @@ export default function ProvidersSection() {
             Service Providers{" "}
             <span className="text-gray-400 font-normal">({filteredProviders.length})</span>
           </h2>
-          <button onClick={fetchProviders} className="flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm font-medium">
-            <RefreshCw size={16} /> Refresh
-          </button>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={handleExportPDF}
+              className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors text-xs font-medium shadow-sm"
+            >
+              <FileText size={14} className="text-indigo-600" />
+              Export PDF
+            </button>
+            <button onClick={fetchProviders} className="flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm font-medium">
+              <RefreshCw size={16} /> Refresh
+            </button>
+          </div>
         </div>
 
         {filteredProviders.length === 0 ? (
@@ -285,11 +396,16 @@ export default function ProvidersSection() {
                                 {isLoading === "toggleActive" ? "..." : p.is_active === 0 ? "Enable" : "Disable"}
                               </button>
                             )}
-                            <button onClick={() => handleAction(p.id, "delete")} disabled={!!isLoading}
-                              className="px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 rounded-xl flex items-center gap-1 transition disabled:opacity-60">
-                              <Trash2 size={13} />
-                              {isLoading === "delete" ? "..." : "Delete"}
-                            </button>
+                              <button onClick={() => handleAction(p.id, "delete")} disabled={!!isLoading}
+                                className="px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 rounded-xl flex items-center gap-1 transition disabled:opacity-60">
+                                <Trash2 size={13} />
+                                {isLoading === "delete" ? "..." : "Delete"}
+                              </button>
+                              <button onClick={() => openEditModal(p)}
+                                className="px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-50 rounded-xl flex items-center gap-1 transition">
+                                <Edit3 size={13} />
+                                Edit
+                              </button>
                           </div>
                         </td>
                       </tr>
@@ -361,10 +477,14 @@ export default function ProvidersSection() {
                           {isLoading === "toggleActive" ? "..." : p.is_active === 0 ? "Enable" : "Disable"}
                         </button>
                       )}
-                      <button onClick={() => handleAction(p.id, "delete")} disabled={!!isLoading}
-                        className="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 rounded-xl flex items-center gap-1 transition">
-                        <Trash2 size={13} /> {isLoading === "delete" ? "..." : "Delete"}
-                      </button>
+                        <button onClick={() => handleAction(p.id, "delete")} disabled={!!isLoading}
+                          className="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 rounded-xl flex items-center gap-1 transition">
+                          <Trash2 size={13} /> {isLoading === "delete" ? "..." : "Delete"}
+                        </button>
+                        <button onClick={() => openEditModal(p)}
+                          className="px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 rounded-xl flex items-center gap-1 transition">
+                          <Edit3 size={13} /> Edit
+                        </button>
                     </div>
                   </div>
                 );
@@ -373,6 +493,103 @@ export default function ProvidersSection() {
           </>
         )}
       </div>
+
+      {editingProvider && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="px-8 py-6 bg-indigo-600 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <Edit3 size={20} />
+                Edit Provider
+              </h3>
+              <button onClick={() => setEditingProvider(null)} className="text-white/80 hover:text-white">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleUpdateProvider} className="p-8 space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Full Name</label>
+                  <div className="relative">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    <input
+                      type="text"
+                      required
+                      className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-indigo-500/30 transition-all outline-none text-sm font-medium"
+                      value={editForm.full_name}
+                      onChange={(e) => setEditForm({...editForm, full_name: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    <input
+                      type="email"
+                      required
+                      className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-indigo-500/30 transition-all outline-none text-sm font-medium"
+                      value={editForm.email}
+                      onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Phone Number</label>
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    <input
+                      type="text"
+                      required
+                      className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-indigo-500/30 transition-all outline-none text-sm font-medium"
+                      value={editForm.phone}
+                      onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEditingProvider(null)}
+                  className="flex-1 px-6 py-3 border border-gray-100 text-gray-500 font-bold text-xs uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={actionLoading[editingProvider.id] === "update"}
+                  className="flex-1 px-6 py-3 bg-indigo-600 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <Save size={16} />
+                  {actionLoading[editingProvider.id] === "update" ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <ConfirmationModal 
+        isOpen={modal.isOpen}
+        onClose={() => setModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={modal.action}
+        title={modal.title}
+        message={modal.message}
+        confirmText={modal.confirmText}
+        type={modal.type}
+      />
+
+      <Toast 
+        isVisible={toast.isVisible}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast(prev => ({ ...toast, isVisible: false }))}
+      />
     </div>
   );
 }

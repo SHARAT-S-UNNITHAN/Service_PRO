@@ -1,7 +1,8 @@
 // src/components/admin/AdminSidebar.jsx
 import {
   LayoutDashboard, Users, UserCheck, AlertTriangle,
-  LogOut, ChevronRight, HelpCircle, BarChart2,
+  LogOut, ChevronRight, HelpCircle, BarChart2, Brain, 
+  Star, Zap, Tag, Shield, Megaphone
 } from "lucide-react";
 
 const menuItems = [
@@ -9,7 +10,13 @@ const menuItems = [
   { id: "analytics",   label: "Analytics",         icon: BarChart2       },
   { id: "providers",   label: "Service Providers", icon: Users           },
   { id: "customers",   label: "Customers",         icon: UserCheck       },
+  { id: "categories",  label: "Categories",        icon: Tag             },
+  { id: "reviews",     label: "Reviews",           icon: Star            },
   { id: "complaints",  label: "Complaints",        icon: AlertTriangle   },
+  { id: "announcements", label: "Announcements",   icon: Megaphone       },
+  { id: "audit-logs",  label: "Audit Logs",        icon: Shield          },
+  { id: "ml-training", label: "ML Training",       icon: Brain           },
+  { id: "ml-insights", label: "ML Insights",       icon: Zap             },
   { id: "helpcenter",  label: "Help Center",       icon: HelpCircle      },
 ];
 

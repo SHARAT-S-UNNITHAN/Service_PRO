@@ -8,15 +8,22 @@ import CustomersSection  from "../components/admin/CustomersSection";
 import ComplaintsSection from "../components/admin/ComplaintsSection";
 import HelpCenterSection from "../components/admin/HelpCenterSection";
 import AdminAnalytics    from "../components/admin/AdminAnalytics";
+import CSVTrainingPanel  from "../components/admin/CSVTrainingPanel";
+import AllReviewsSection from "../components/admin/AllReviewsSection";
+import MLInsightsSection from "../components/admin/MLInsightsSection";
+import CategorySection from "../components/admin/CategorySection";
+import AuditLogSection from "../components/admin/AuditLogSection";
+import AnnouncementsSection from "../components/admin/AnnouncementsSection";
+import ConfirmationModal from "../components/shared/ConfirmationModal";
 
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState("dashboard");
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    if (window.confirm("Are you sure you want to logout?")) {
-      localStorage.clear(); navigate("/login");
-    }
+    localStorage.clear(); 
+    navigate("/login");
   };
 
   const renderContent = () => {
@@ -25,7 +32,13 @@ export default function AdminDashboard() {
       case "analytics":  return <AdminAnalytics />;
       case "providers":  return <ProvidersSection />;
       case "customers":  return <CustomersSection />;
+      case "categories": return <CategorySection />;
+      case "reviews":    return <AllReviewsSection />;
       case "complaints": return <ComplaintsSection />;
+      case "announcements": return <AnnouncementsSection />;
+      case "audit-logs": return <AuditLogSection />;
+      case "ml-training": return <CSVTrainingPanel />;
+      case "ml-insights": return <MLInsightsSection />;
       case "helpcenter": return <HelpCenterSection />;
       default:           return <DashboardSection onSectionChange={setActiveSection} />;
     }
@@ -36,7 +49,7 @@ export default function AdminDashboard() {
       <AdminSidebar
         activeSection={activeSection}
         onSectionChange={setActiveSection}
-        onLogout={handleLogout}
+        onLogout={() => setShowLogoutModal(true)}
       />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <main className="flex-1 overflow-auto p-4 sm:p-6 md:p-8 lg:p-10 pb-24 md:pb-10">
@@ -45,6 +58,16 @@ export default function AdminDashboard() {
           </div>
         </main>
       </div>
+
+      <ConfirmationModal 
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleLogout}
+        title="Confirm Logout"
+        message="Are you sure you want to log out of the admin panel? You will need to sign in again to access these management tools."
+        confirmText="Logout Now"
+        type="warning"
+      />
     </div>
   );
 }

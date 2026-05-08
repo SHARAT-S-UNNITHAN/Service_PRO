@@ -10,7 +10,13 @@ import {
   CheckCircle,
   Clock,
   Send,
+  FileText,
+  X,
+  User
 } from "lucide-react";
+import { generatePDFReport } from "../../utils/pdfGenerator";
+import ConfirmationModal from "../shared/ConfirmationModal";
+import Toast from "../shared/Toast";
 
 const API = "http://localhost:4000";
 
@@ -29,6 +35,10 @@ export default function ComplaintsSection() {
   const [warningMessage, setWarningMessage] = useState("");
   const [sendingWarning, setSendingWarning] = useState(false);
 
+  // New UI State
+  const [modal, setModal] = useState({ isOpen: false, action: null });
+  const [toast, setToast] = useState({ isVisible: false, message: "", type: "success" });
+
   useEffect(() => {
     fetchComplaints();
   }, []);
@@ -42,8 +52,7 @@ export default function ComplaintsSection() {
       setComplaints(res.data || []);
       setFilteredComplaints(res.data || []);
     } catch (err) {
-      console.error("Failed to fetch complaints:", err);
-      alert("Failed to load complaints");
+      setToast({ isVisible: true, message: "Failed to load complaints", type: "error" });
     } finally {
       setLoading(false);
     }
@@ -70,24 +79,26 @@ export default function ComplaintsSection() {
     setFilteredComplaints(result);
   }, [complaints, searchTerm, filterStatus]);
 
-  const handleDelete = async (complaintId) => {
-    if (!window.confirm("Delete this complaint permanently?")) return;
-
-    setActionLoading((prev) => ({ ...prev, [complaintId]: true }));
-
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`${API}/admin/complaints/${complaintId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      await fetchComplaints();
-      alert("Complaint deleted successfully!");
-    } catch (err) {
-      alert(err.response?.data?.error || "Failed to delete complaint");
-    } finally {
-      setActionLoading((prev) => ({ ...prev, [complaintId]: false }));
-    }
+  const handleDelete = (complaintId) => {
+    setModal({
+      isOpen: true,
+      action: async () => {
+        setActionLoading((prev) => ({ ...prev, [complaintId]: true }));
+        try {
+          const token = localStorage.getItem("token");
+          await axios.delete(`${API}/admin/complaints/${complaintId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          await fetchComplaints();
+          setToast({ isVisible: true, message: "Complaint deleted successfully!", type: "success" });
+        } catch (err) {
+          setToast({ isVisible: true, message: err.response?.data?.error || "Failed to delete complaint", type: "error" });
+        } finally {
+          setActionLoading((prev) => ({ ...prev, [complaintId]: false }));
+          setModal({ isOpen: false, action: null });
+        }
+      }
+    });
   };
 
   const openWarningModal = (complaint) => {
@@ -104,7 +115,7 @@ export default function ComplaintsSection() {
 
   const sendWarningToProvider = async () => {
     if (!warningMessage.trim()) {
-      alert("Please write a warning message");
+      setToast({ isVisible: true, message: "Please write a warning message", type: "error" });
       return;
     }
 
@@ -118,17 +129,48 @@ export default function ComplaintsSection() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert("Warning sent successfully!");
-
-      // Refresh list → Warn button will disappear
+      setToast({ isVisible: true, message: "Warning sent successfully!", type: "success" });
       await fetchComplaints();
-
       closeModals();
     } catch (err) {
-      alert(err.response?.data?.error || "Failed to send warning");
+      setToast({ isVisible: true, message: err.response?.data?.error || "Failed to send warning", type: "error" });
     } finally {
       setSendingWarning(false);
     }
+  };
+
+  const handleExportPDF = () => {
+    const columns = [
+      { header: "Subject", dataKey: "subject" },
+      { header: "Provider", dataKey: "provider_name" },
+      { header: "Customer", dataKey: "customer_name" },
+      { header: "Severity", dataKey: "severity" },
+      { header: "Status", dataKey: "status" },
+      { header: "Date", dataKey: "created_at" },
+      { header: "Complaint Details", dataKey: "complaint_text" }
+    ];
+
+    const data = filteredComplaints.map(c => ({
+      subject: c.subject,
+      provider_name: c.provider_name || "N/A",
+      customer_name: c.customer_name || "N/A",
+      severity: (c.severity || "MEDIUM").toUpperCase(),
+      status: c.status.replace("_", " ").toUpperCase(),
+      created_at: new Date(c.created_at).toLocaleDateString("en-IN"),
+      complaint_text: c.complaint_text
+    }));
+
+    generatePDFReport({
+      title: "Provider Complaints Report",
+      columns: columns,
+      data: data,
+      filename: "complaints_report",
+      stats: {
+        "Total Complaints": complaints.length,
+        "Filtered": filteredComplaints.length,
+        "Critical": complaints.filter(c => c.severity === 'critical').length
+      }
+    });
   };
 
   const getStatusColor = (status) => {
@@ -204,13 +246,22 @@ export default function ComplaintsSection() {
             Provider Complaints{" "}
             <span className="text-gray-400 font-normal">({filteredComplaints.length})</span>
           </h2>
-          <button
-            onClick={fetchComplaints}
-            className="flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm font-medium"
-          >
-            <RefreshCw size={16} />
-            Refresh
-          </button>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={handleExportPDF}
+              className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors text-xs font-medium shadow-sm"
+            >
+              <FileText size={14} className="text-indigo-600" />
+              Export PDF
+            </button>
+            <button
+              onClick={fetchComplaints}
+              className="flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm font-medium"
+            >
+              <RefreshCw size={16} />
+              Refresh
+            </button>
+          </div>
         </div>
 
         {filteredComplaints.length === 0 ? (
@@ -296,44 +347,80 @@ export default function ComplaintsSection() {
 
       {/* Warning Modal */}
       {showWarningModal && selectedComplaint && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <AlertTriangle className="text-orange-500" size={26} />
-              <h3 className="text-2xl font-semibold">Send Warning</h3>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="px-8 py-6 bg-amber-600 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <AlertTriangle size={24} />
+                Issue Warning
+              </h3>
+              <button onClick={closeModals} className="text-white/80 hover:text-white transition-colors">
+                <X size={24} />
+              </button>
             </div>
 
-            <p className="text-gray-600 mb-4">
-              To: <span className="font-medium">{selectedComplaint.provider_name}</span>
-            </p>
+            <div className="p-8 space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center border border-amber-100">
+                  <User className="text-amber-600" size={24} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Recipient Provider</p>
+                  <p className="text-base font-bold text-gray-900">{selectedComplaint.provider_name}</p>
+                </div>
+              </div>
 
-            <textarea
-              value={warningMessage}
-              onChange={(e) => setWarningMessage(e.target.value)}
-              placeholder="Write warning message here..."
-              className="w-full h-40 p-5 border border-gray-200 rounded-2xl focus:outline-none focus:border-orange-500 resize-y text-sm"
-            />
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Warning Message</label>
+                <textarea
+                  value={warningMessage}
+                  onChange={(e) => setWarningMessage(e.target.value)}
+                  placeholder="Write the official warning details here..."
+                  className="w-full h-40 p-5 bg-gray-50 border border-transparent rounded-[1.5rem] focus:bg-white focus:border-amber-500/30 transition-all outline-none text-sm font-medium resize-none shadow-inner"
+                />
+              </div>
 
-            <div className="flex gap-4 mt-8">
-              <button
-                onClick={closeModals}
-                className="flex-1 py-4 border border-gray-300 rounded-2xl font-medium hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={sendWarningToProvider}
-                disabled={sendingWarning || !warningMessage.trim()}
-                className={`flex-1 py-4 bg-orange-600 text-white rounded-2xl font-medium transition ${
-                  sendingWarning || !warningMessage.trim() ? "opacity-50 cursor-not-allowed" : "hover:bg-orange-700"
-                }`}
-              >
-                {sendingWarning ? "Sending..." : "Send Warning"}
-              </button>
+              <div className="flex gap-4">
+                <button
+                  onClick={closeModals}
+                  className="flex-1 py-4 border border-gray-100 text-gray-400 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-all active:scale-95"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={sendWarningToProvider}
+                  disabled={sendingWarning || !warningMessage.trim()}
+                  className="flex-1 py-4 bg-amber-600 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-amber-100 hover:bg-amber-700 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {sendingWarning ? (
+                    <RefreshCw size={14} className="animate-spin" />
+                  ) : (
+                    <Send size={14} />
+                  )}
+                  {sendingWarning ? "Sending..." : "Issue Warning"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
+
+      <ConfirmationModal 
+        isOpen={modal.isOpen}
+        onClose={() => setModal({ isOpen: false, action: null })}
+        onConfirm={modal.action}
+        title="Delete Complaint"
+        message="Are you sure you want to delete this complaint? This action is permanent and cannot be undone."
+        confirmText="Delete Now"
+        type="danger"
+      />
+
+      <Toast 
+        isVisible={toast.isVisible}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast(prev => ({ ...toast, isVisible: false }))}
+      />
     </div>
   );
 }

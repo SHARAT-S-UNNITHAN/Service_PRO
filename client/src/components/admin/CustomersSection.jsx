@@ -3,8 +3,12 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import {
   Search, Filter, Trash2, RefreshCw, User,
-  X, Phone, MapPin, Calendar, BookOpen, Star,
+  X, Phone, MapPin, Calendar, BookOpen, Star, FileText,
+  Edit3, Save, Mail
 } from "lucide-react";
+import { generatePDFReport } from "../../utils/pdfGenerator";
+import ConfirmationModal from "../shared/ConfirmationModal";
+import Toast from "../shared/Toast";
 
 const API = "http://localhost:4000";
 
@@ -143,7 +147,13 @@ export default function CustomersSection() {
   const [actionLoading, setActionLoading]         = useState({});
   const [searchTerm, setSearchTerm]               = useState("");
   const [selectedCustomer, setSelectedCustomer]   = useState(null);
+  const [editingCustomer, setEditingCustomer]     = useState(null);
+  const [editForm, setEditForm]                   = useState({ full_name: "", email: "", phone: "" });
   const token = localStorage.getItem("token");
+
+  // New UI State
+  const [modal, setModal] = useState({ isOpen: false, id: null });
+  const [toast, setToast] = useState({ isVisible: false, message: "", type: "success" });
 
   useEffect(() => { fetchCustomers(); }, []);
 
@@ -174,20 +184,89 @@ export default function CustomersSection() {
     ));
   }, [customers, searchTerm]);
 
-  const handleDelete = async (customerId) => {
-    if (!window.confirm("Are you sure you want to DELETE this customer?\nThis action cannot be undone.")) return;
-    setActionLoading((prev) => ({ ...prev, [customerId]: true }));
+  const handleDelete = (customerId) => {
+    setModal({
+      isOpen: true,
+      id: customerId,
+      title: "Delete Customer Account",
+      message: "Are you sure you want to permanently delete this customer? All their booking history will be removed.",
+      confirmText: "Delete Now",
+      type: "danger",
+      action: async () => {
+        setActionLoading((prev) => ({ ...prev, [customerId]: true }));
+        try {
+          await axios.delete(`${API}/admin/customers/${customerId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          await fetchCustomers();
+          setToast({ isVisible: true, message: "Customer deleted successfully!", type: "success" });
+        } catch (err) {
+          setToast({ isVisible: true, message: err.response?.data?.error || "Failed to delete customer", type: "error" });
+        } finally {
+          setActionLoading((prev) => ({ ...prev, [customerId]: false }));
+          setModal({ isOpen: false, id: null });
+        }
+      }
+    });
+  };
+
+  const handleUpdateCustomer = async (e) => {
+    e.preventDefault();
+    if (!editingCustomer) return;
+
+    setActionLoading((prev) => ({ ...prev, [editingCustomer.id]: true }));
     try {
-      await axios.delete(`${API}/admin/customers/${customerId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.patch(
+        `${API}/admin/customers/${editingCustomer.id}`,
+        editForm,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setEditingCustomer(null);
       await fetchCustomers();
-      alert("✅ Customer deleted successfully!");
+      setToast({ isVisible: true, message: "Customer updated successfully!", type: "success" });
     } catch (err) {
-      alert(err.response?.data?.error || "Failed to delete customer");
+      setToast({ isVisible: true, message: err.response?.data?.error || "Failed to update customer", type: "error" });
     } finally {
-      setActionLoading((prev) => ({ ...prev, [customerId]: false }));
+      setActionLoading((prev) => ({ ...prev, [editingCustomer.id]: false }));
     }
+  };
+
+  const openEditModal = (c) => {
+    setEditingCustomer(c);
+    setEditForm({
+      full_name: c.full_name || "",
+      email: c.email || "",
+      phone: c.phone || ""
+    });
+  };
+
+  const handleExportPDF = () => {
+    const columns = [
+      { header: "Name", dataKey: "full_name" },
+      { header: "Email", dataKey: "email" },
+      { header: "Phone", dataKey: "phone" },
+      { header: "Address", dataKey: "address" },
+      { header: "Joined On", dataKey: "created_at" }
+    ];
+
+    const data = filteredCustomers.map(c => ({
+      full_name: c.full_name,
+      email: c.email,
+      phone: c.phone,
+      address: c.address + (c.landmark ? ` (Landmark: ${c.landmark})` : ""),
+      created_at: new Date(c.created_at).toLocaleDateString("en-IN")
+    }));
+
+    generatePDFReport({
+      title: "Registered Customers List",
+      columns: columns,
+      data: data,
+      filename: "customers_report",
+      stats: {
+        "Total Customers": customers.length,
+        "Filtered Results": filteredCustomers.length
+      }
+    });
   };
 
   if (loading) return (
@@ -217,9 +296,18 @@ export default function CustomersSection() {
           <h2 className="text-base sm:text-lg font-semibold text-gray-900">
             All Customers <span className="text-gray-400 font-normal">({filteredCustomers.length})</span>
           </h2>
-          <button onClick={fetchCustomers} className="flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm font-medium">
-            <RefreshCw size={16} /> Refresh
-          </button>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={handleExportPDF}
+              className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors text-xs font-medium shadow-sm"
+            >
+              <FileText size={14} className="text-indigo-600" />
+              Export PDF
+            </button>
+            <button onClick={fetchCustomers} className="flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm font-medium">
+              <RefreshCw size={16} /> Refresh
+            </button>
+          </div>
         </div>
 
         {filteredCustomers.length === 0 ? (
@@ -279,6 +367,13 @@ export default function CustomersSection() {
                             <Trash2 size={13} />
                             {actionLoading[c.id] ? "Deleting..." : "Delete"}
                           </button>
+                          <button
+                            onClick={() => openEditModal(c)}
+                            className="px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-50 rounded-xl flex items-center gap-1 transition"
+                          >
+                            <Edit3 size={13} />
+                            Edit
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -320,6 +415,12 @@ export default function CustomersSection() {
                     >
                       <Trash2 size={13} /> {actionLoading[c.id] ? "Deleting..." : "Delete"}
                     </button>
+                    <button
+                      onClick={() => openEditModal(c)}
+                      className="flex-1 py-2 text-xs font-medium text-indigo-700 bg-indigo-50 rounded-xl flex items-center justify-center gap-1 transition"
+                    >
+                      <Edit3 size={13} /> Edit
+                    </button>
                   </div>
                 </div>
               ))}
@@ -336,6 +437,104 @@ export default function CustomersSection() {
           token={token}
         />
       )}
+
+      {/* Edit Customer Modal */}
+      {editingCustomer && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="px-8 py-6 bg-indigo-600 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <Edit3 size={20} />
+                Edit Customer
+              </h3>
+              <button onClick={() => setEditingCustomer(null)} className="text-white/80 hover:text-white">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleUpdateCustomer} className="p-8 space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Full Name</label>
+                  <div className="relative">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    <input
+                      type="text"
+                      required
+                      className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-indigo-500/30 transition-all outline-none text-sm font-medium"
+                      value={editForm.full_name}
+                      onChange={(e) => setEditForm({...editForm, full_name: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    <input
+                      type="email"
+                      required
+                      className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-indigo-500/30 transition-all outline-none text-sm font-medium"
+                      value={editForm.email}
+                      onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Phone Number</label>
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    <input
+                      type="text"
+                      required
+                      className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-indigo-500/30 transition-all outline-none text-sm font-medium"
+                      value={editForm.phone}
+                      onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEditingCustomer(null)}
+                  className="flex-1 px-6 py-3 border border-gray-100 text-gray-500 font-bold text-xs uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={actionLoading[editingCustomer.id]}
+                  className="flex-1 px-6 py-3 bg-indigo-600 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <Save size={16} />
+                  {actionLoading[editingCustomer.id] ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <ConfirmationModal 
+        isOpen={modal.isOpen}
+        onClose={() => setModal({ isOpen: false, id: null })}
+        onConfirm={modal.action}
+        title={modal.title}
+        message={modal.message}
+        confirmText={modal.confirmText}
+        type={modal.type}
+      />
+
+      <Toast 
+        isVisible={toast.isVisible}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast(prev => ({ ...toast, isVisible: false }))}
+      />
     </div>
   );
 }

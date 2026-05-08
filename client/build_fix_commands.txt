@@ -1,0 +1,10 @@
+# Build commands (Windows cmd.exe)
+
+# From repo root:
+# 1) Build the React client
+cd client
+npm run build
+
+# If build fails, show full error output:
+# npm run build -- --verbose
+

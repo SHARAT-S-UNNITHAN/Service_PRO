@@ -72,6 +72,18 @@ db.serialize(() => {
   `);
 
   // =========================
+  // PROFESSIONS MASTER (Categories)
+  // =========================
+  db.run(`
+    CREATE TABLE IF NOT EXISTS professions_master (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT UNIQUE NOT NULL,
+      description TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // =========================
   // CUSTOMERS
   // =========================
   db.run(`
@@ -132,6 +144,35 @@ db.serialize(() => {
   `);
 
   // =========================
+  // ADMIN AUDIT LOGS
+  // =========================
+  db.run(`
+    CREATE TABLE IF NOT EXISTS admin_audit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      admin_id INTEGER NOT NULL,
+      action TEXT NOT NULL,
+      target_type TEXT,
+      target_id TEXT,
+      details TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+
+  // =========================
+  // ANNOUNCEMENTS
+  // =========================
+  db.run(`
+    CREATE TABLE IF NOT EXISTS announcements (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      message TEXT NOT NULL,
+      target_role TEXT CHECK(target_role IN ('all', 'user', 'provider')) DEFAULT 'all',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // =========================
   // PROVIDER COMPLAINTS
   // =========================
   db.run(`
@@ -180,6 +221,23 @@ db.serialize(() => {
   db.run(`ALTER TABLE provider_complaints ADD COLUMN warning_sent INTEGER DEFAULT 0`, (err) => {
     if (err && !err.message.includes("duplicate column")) {
       console.error("Error adding warning_sent:", err.message);
+    }
+  });
+
+  // Add review moderation columns
+  db.run(`ALTER TABLE reviews ADD COLUMN is_flagged INTEGER DEFAULT 0`, (err) => {
+    if (err && !err.message.includes("duplicate column")) {
+      console.error("Error adding is_flagged:", err.message);
+    }
+  });
+  db.run(`ALTER TABLE reviews ADD COLUMN flag_reason TEXT`, (err) => {
+    if (err && !err.message.includes("duplicate column")) {
+      console.error("Error adding flag_reason:", err.message);
+    }
+  });
+  db.run(`ALTER TABLE reviews ADD COLUMN ip_address TEXT`, (err) => {
+    if (err && !err.message.includes("duplicate column")) {
+      console.error("Error adding ip_address:", err.message);
     }
   });
 

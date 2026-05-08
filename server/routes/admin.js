@@ -2,6 +2,7 @@
 const express = require("express");
 const db = require("../db");
 const { authMiddleware, requireRole } = require("../middleware/auth");
+const { logAdminAction } = require("../utils/logger");
 
 const router = express.Router();
 
@@ -162,10 +163,64 @@ router.patch("/providers/:id/verify", (req, res) => {
       newStatus === 1 ? "approved" :
       newStatus === -1 ? "rejected" : "reset to pending";
 
+    logAdminAction(req.user.id, "VERIFY_PROVIDER", "provider", pid, { status: statusText });
+
     res.json({
       message: `Provider has been ${statusText} successfully`,
       providerId: pid,
       is_verified: newStatus
+    });
+  });
+});
+
+// ────────────────────────────────────────────────
+// PATCH /admin/providers/:id
+// Update provider profile + email
+// ────────────────────────────────────────────────
+router.patch("/providers/:id", (req, res) => {
+  const pid = parseInt(req.params.id, 10);
+  const { full_name, phone, email, district, region, address } = req.body;
+
+  if (isNaN(pid)) return res.status(400).json({ error: "Invalid ID" });
+
+  db.get("SELECT user_id FROM providers WHERE id = ?", [pid], (err, provider) => {
+    if (err || !provider) return res.status(404).json({ error: "Provider not found" });
+
+    db.serialize(() => {
+      db.run("BEGIN TRANSACTION");
+
+      // Update provider table
+      db.run(
+        `UPDATE providers SET 
+          full_name = COALESCE(?, full_name),
+          phone = COALESCE(?, phone),
+          district = COALESCE(?, district),
+          region = COALESCE(?, region),
+          address = COALESCE(?, address),
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?`,
+        [full_name, phone, district, region, address, pid]
+      );
+
+      // Update users table (email)
+      if (email) {
+        db.run(
+          "UPDATE users SET email = ? WHERE id = ?",
+          [email, provider.user_id],
+          (err) => {
+            if (err && err.message.includes("UNIQUE")) {
+              db.run("ROLLBACK");
+              return res.status(400).json({ error: "Email already in use" });
+            }
+          }
+        );
+      }
+
+      db.run("COMMIT", (err) => {
+        if (err) return res.status(500).json({ error: "Update failed" });
+        logAdminAction(req.user.id, "UPDATE_PROVIDER_PROFILE", "provider", pid, { email, full_name });
+        res.json({ message: "Provider updated successfully" });
+      });
     });
   });
 });
@@ -231,6 +286,8 @@ router.patch("/providers/:id/toggle-active", (req, res) => {
       if (err) return res.status(500).json({ error: "Database error" });
       if (this.changes === 0) return res.status(404).json({ error: "Provider not found" });
 
+      logAdminAction(req.user.id, "TOGGLE_PROVIDER_ACTIVE", "provider", pid, { active: is_active === 1 });
+
       res.json({ 
         message: `Provider ${is_active === 1 ? "enabled" : "disabled"} successfully`,
         is_active 
@@ -252,6 +309,8 @@ router.delete("/providers/:id", (req, res) => {
   db.run("DELETE FROM providers WHERE id = ?", [pid], function (err) {
     if (err) return res.status(500).json({ error: "Database error" });
     if (this.changes === 0) return res.status(404).json({ error: "Provider not found" });
+
+    logAdminAction(req.user.id, "DELETE_PROVIDER", "provider", pid);
 
     res.json({ message: "Provider deleted successfully" });
   });
@@ -325,6 +384,52 @@ router.get("/customers/:id", (req, res) => {
   });
 });
 
+// PATCH /admin/customers/:id
+router.patch("/customers/:id", (req, res) => {
+  const cid = parseInt(req.params.id, 10);
+  const { full_name, phone, email, address, landmark } = req.body;
+
+  if (isNaN(cid)) return res.status(400).json({ error: "Invalid ID" });
+
+  db.get("SELECT user_id FROM customers WHERE id = ?", [cid], (err, customer) => {
+    if (err || !customer) return res.status(404).json({ error: "Customer not found" });
+
+    db.serialize(() => {
+      db.run("BEGIN TRANSACTION");
+
+      db.run(
+        `UPDATE customers SET 
+          full_name = COALESCE(?, full_name),
+          phone = COALESCE(?, phone),
+          address = COALESCE(?, address),
+          landmark = COALESCE(?, landmark),
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?`,
+        [full_name, phone, address, landmark, cid]
+      );
+
+      if (email) {
+        db.run(
+          "UPDATE users SET email = ? WHERE id = ?",
+          [email, customer.user_id],
+          (err) => {
+            if (err && err.message.includes("UNIQUE")) {
+              db.run("ROLLBACK");
+              return res.status(400).json({ error: "Email already in use" });
+            }
+          }
+        );
+      }
+
+      db.run("COMMIT", (err) => {
+        if (err) return res.status(500).json({ error: "Update failed" });
+        logAdminAction(req.user.id, "UPDATE_CUSTOMER_PROFILE", "customer", cid, { email, full_name });
+        res.json({ message: "Customer updated successfully" });
+      });
+    });
+  });
+});
+
 // DELETE /admin/customers/:id
 router.delete("/customers/:id", (req, res) => {
   const cid = parseInt(req.params.id, 10);
@@ -336,6 +441,9 @@ router.delete("/customers/:id", (req, res) => {
   db.run("DELETE FROM customers WHERE id = ?", [cid], function (err) {
     if (err) return res.status(500).json({ error: "Database error" });
     if (this.changes === 0) return res.status(404).json({ error: "Customer not found" });
+    
+    logAdminAction(req.user.id, "DELETE_CUSTOMER", "customer", cid);
+    
     res.json({ message: "Customer deleted successfully" });
   });
 });
@@ -393,6 +501,8 @@ router.patch("/complaints/:id", (req, res) => {
     if (err) return res.status(500).json({ error: "Database error" });
     if (this.changes === 0) return res.status(404).json({ error: "Complaint not found" });
 
+    logAdminAction(req.user.id, "UPDATE_COMPLAINT", "complaint", id, { status, notes: admin_notes });
+
     res.json({ message: "Complaint updated successfully" });
   });
 });
@@ -404,6 +514,8 @@ router.delete("/complaints/:id", (req, res) => {
   db.run("DELETE FROM provider_complaints WHERE id = ?", [id], function (err) {
     if (err) return res.status(500).json({ error: "Database error" });
     if (this.changes === 0) return res.status(404).json({ error: "Complaint not found" });
+
+    logAdminAction(req.user.id, "DELETE_COMPLAINT", "complaint", id);
 
     res.json({ message: "Complaint deleted successfully" });
   });
@@ -486,6 +598,8 @@ Please address this issue at the earliest.
             console.error("Error sending warning:", err.message);
             return res.status(500).json({ error: "Failed to send warning message" });
           }
+
+          logAdminAction(req.user.id, "SEND_WARNING", "complaint", complaintId, { message: message.trim() });
 
           res.json({
             success: true,

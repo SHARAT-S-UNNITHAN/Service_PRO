@@ -15,6 +15,8 @@ export default function SearchPage() {
 
   const serviceParam = searchParams.get("service") || "";
   const locationParam = searchParams.get("location") || "";
+  const sortParam = searchParams.get("sort") || "";
+  const verifiedParam = searchParams.get("verified") || "";
 
   const formatText = (text) =>
     text.replace(/\b\w/g, (c) => c.toUpperCase());
@@ -49,12 +51,6 @@ export default function SearchPage() {
   };
 
   useEffect(() => {
-    if (!serviceParam) {
-      setError("Service is required");
-      setLoading(false);
-      return;
-    }
-
     const fetchProviders = async () => {
       try {
         setLoading(true);
@@ -64,11 +60,13 @@ export default function SearchPage() {
           params: {
             service: serviceParam,
             location: locationParam,
+            sort: sortParam,
+            verified: verifiedParam
           },
         });
 
         let results = res.data || [];
-        results.sort((a, b) => (b.ml_score || 0) - (a.ml_score || 0));
+        // The backend now handles sorting, but we can keep a fallback if needed
         setProviders(results);
       } catch (err) {
         console.error("Search error:", err);
@@ -79,7 +77,17 @@ export default function SearchPage() {
     };
 
     fetchProviders();
-  }, [serviceParam, locationParam]);
+  }, [serviceParam, locationParam, sortParam, verifiedParam]);
+
+  const getPageTitle = () => {
+    if (serviceParam) {
+      return `Results for "${formatText(serviceParam)}${locationParam ? ` in ${formatText(locationParam)}` : ""}"`;
+    }
+    if (sortParam === "rating") return "Top Rated Professionals";
+    if (sortParam === "response") return "Quick Response Experts";
+    if (verifiedParam === "true") return "Verified Professionals";
+    return "Service Professionals";
+  };
 
   return (
     <div className="min-h-screen bg-white py-16 px-6 sm:px-8 lg:px-12 font-sans selection:bg-gray-100">
@@ -88,15 +96,12 @@ export default function SearchPage() {
         {/* Heading */}
         <div className="mb-14 text-left">
           <h1 className="text-3xl sm:text-4xl font-semibold text-gray-900 tracking-tight">
-            Results for "{formatText(serviceParam)}
-            {locationParam && (
-              <span className="text-gray-500"> in {formatText(locationParam)}</span>
-            )}"
+            {getPageTitle()}
           </h1>
           <p className="mt-3 text-gray-500 text-sm sm:text-base">
             {!loading && !error && providers.length > 0
               ? `${providers.length} providers found based on your criteria.`
-              : "Searching our network..."}
+              : loading ? "Searching our network..." : ""}
           </p>
         </div>
 
@@ -123,7 +128,7 @@ export default function SearchPage() {
           /* Two Cards Per Row */
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-100 pt-8">
             {providers.map((p) => {
-              const score = p.ml_score || 0;
+              const score = p.average_rating || p.rating || 0;
               const displayName = p.full_name || p.username || "Provider";
 
               return (

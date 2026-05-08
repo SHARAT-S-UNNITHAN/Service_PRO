@@ -9,8 +9,9 @@ import {
 import {
   TrendingUp, Users, IndianRupee, CheckCircle2, AlertTriangle,
   RefreshCw, Download, Trophy, Activity, UserMinus, Copy,
-  Star, Clock, Zap, Award, ChevronRight, Filter,
+  Star, Clock, Zap, Award, ChevronRight, Filter, FileText
 } from "lucide-react";
+import { generatePDFReport } from "../../utils/pdfGenerator";
 
 const API    = "http://localhost:4000";
 const COLORS = ["#4f46e5","#06b6d4","#10b981","#f59e0b","#ef4444","#8b5cf6","#ec4899","#14b8a6","#f97316","#64748b"];
@@ -135,6 +136,39 @@ export default function AdminAnalytics() {
     { id: "spending",   label: "User Spending", icon: IndianRupee},
   ];
 
+  const handleExportSummary = () => {
+    if (!overview) return;
+    
+    const { totals } = overview;
+    const columns = [
+      { header: "Metric", dataKey: "metric" },
+      { header: "Value", dataKey: "value" }
+    ];
+
+    const data = [
+      { metric: "Total Users", value: fmt(totals.total_users) },
+      { metric: "Total Providers", value: fmt(totals.total_providers) },
+      { metric: "Verified Providers", value: fmt(totals.verified_providers) },
+      { metric: "Total Bookings", value: fmt(totals.total_bookings) },
+      { metric: "Completed Bookings", value: fmt(totals.completed_bookings) },
+      { metric: "Total Revenue", value: `Rs. ${fmt(totals.total_revenue)}` },
+      { metric: "Open Complaints", value: fmt(totals.open_complaints) },
+      { metric: "Bookings Today", value: fmt(totals.bookings_today) }
+    ];
+
+    generatePDFReport({
+      title: "Platform Executive Summary",
+      columns: columns,
+      data: data,
+      filename: "executive_summary",
+      stats: {
+        "Platform": "ZERV",
+        "Type": "Full Status Report",
+        "Currency": "INR"
+      }
+    });
+  };
+
   const sortedLb = [...leaderboard].sort((a,b)=>(b[lbSort]||0)-(a[lbSort]||0));
 
   const actColor = { booking:"bg-blue-100 text-blue-700", signup:"bg-green-100 text-green-700", complaint:"bg-red-100 text-red-700" };
@@ -159,10 +193,19 @@ export default function AdminAnalytics() {
             <t.icon size={13} /> {t.label}
           </button>
         ))}
-        <button onClick={fetchAll} title="Refresh all"
-          className="ml-auto p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition shrink-0">
-          <RefreshCw size={15} />
-        </button>
+        <div className="ml-auto flex items-center gap-2">
+          <button 
+            onClick={handleExportSummary}
+            className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-all text-xs font-semibold shadow-sm"
+          >
+            <FileText size={13} className="text-indigo-600" />
+            Summary PDF
+          </button>
+          <button onClick={fetchAll} title="Refresh all"
+            className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition shrink-0">
+            <RefreshCw size={15} />
+          </button>
+        </div>
       </div>
 
       {/* ═══ OVERVIEW ═══ */}

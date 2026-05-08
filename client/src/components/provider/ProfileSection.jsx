@@ -34,6 +34,7 @@ export default function ProfileSection({ profile, token, API }) {
         {
           full_name: formData.full_name.trim(),
           phone: formData.phone.trim(),
+          email: formData.email.trim(),
           district: formData.district.trim(),
           region: formData.region.trim(),
           address: formData.address.trim(),
@@ -154,8 +155,12 @@ export default function ProfileSection({ profile, token, API }) {
 
             <InputField
               label="Email"
-              editMode={false}
+              editMode={editMode}
+              value={formData.email || ''}
+              name="email"
+              onChange={handleChange}
               display={profile.email}
+              type="email"
             />
 
             <InputField

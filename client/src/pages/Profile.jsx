@@ -99,6 +99,7 @@ export default function Profile() {
         {
           full_name: formData.full_name.trim(),
           phone: formData.phone.trim(),
+          email: formData.email.trim(),
           address: formData.address.trim(),
           landmark: formData.landmark?.trim() || null,
         },

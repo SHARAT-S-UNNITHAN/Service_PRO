@@ -79,13 +79,13 @@ export default function App() {
 
         {/* ====================== PROTECTED USER ROUTES ====================== */}
         <Route
-          path="/user/profile"
-          element={
-            <RoleRoute allowed={["user"]}>
-              <Profile />
-            </RoleRoute>
-          }
-        />
+  path="/user/profile"
+  element={
+    <RoleRoute allowed={["user"]}>
+      <UserDashboard />
+    </RoleRoute>
+  }
+/>
 
         <Route
           path="/user/dashboard"

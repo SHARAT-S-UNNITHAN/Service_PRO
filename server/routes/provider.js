@@ -105,33 +105,50 @@ router.get("/status", (req, res) => {
 
 // PUT /provider/profile
 router.put("/profile", (req, res) => {
-  const { full_name, phone, district, region, address, description } =
-    req.body;
+  const { full_name, phone, email, district, region, address, description } = req.body;
 
   if (!full_name || !phone || !district || !region || !address) {
     return res.status(400).json({ error: "Required fields missing" });
   }
 
-  db.run(
-    `UPDATE providers
-     SET full_name = ?, phone = ?, district = ?, region = ?, address = ?, description = ?, updated_at = CURRENT_TIMESTAMP
-     WHERE user_id = ?`,
-    [
-      full_name.trim(),
-      phone.trim(),
-      district.trim(),
-      region.trim(),
-      address.trim(),
-      description?.trim() || "",
-      req.user.id,
-    ],
-    function (err) {
-      if (err) return res.status(500).json({ error: "Database error" });
-      if (this.changes === 0)
-        return res.status(404).json({ error: "Profile not found" });
-      res.json({ message: "Profile updated successfully" });
+  db.serialize(() => {
+    db.run("BEGIN TRANSACTION");
+
+    // Update providers table
+    db.run(
+      `UPDATE providers
+       SET full_name = ?, phone = ?, district = ?, region = ?, address = ?, description = ?, updated_at = CURRENT_TIMESTAMP
+       WHERE user_id = ?`,
+      [
+        full_name.trim(),
+        phone.trim(),
+        district.trim(),
+        region.trim(),
+        address.trim(),
+        description?.trim() || "",
+        req.user.id,
+      ]
+    );
+
+    // Update users table if email provided
+    if (email) {
+      db.run(
+        "UPDATE users SET email = ? WHERE id = ?",
+        [email.trim(), req.user.id],
+        (err) => {
+          if (err && err.message.includes("UNIQUE")) {
+            db.run("ROLLBACK");
+            return res.status(400).json({ error: "Email already in use" });
+          }
+        }
+      );
     }
-  );
+
+    db.run("COMMIT", (err) => {
+      if (err) return res.status(500).json({ error: "Update failed" });
+      res.json({ message: "Profile updated successfully" });
+    });
+  });
 });
 
 // GET /provider/professions
